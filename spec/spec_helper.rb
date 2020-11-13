@@ -1,4 +1,5 @@
 require "bundler/setup"
+require "pry"
 require "codinbot"
 
 RSpec.configure do |config|

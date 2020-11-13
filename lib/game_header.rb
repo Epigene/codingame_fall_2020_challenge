@@ -1,8 +1,8 @@
 require "set"
-require 'benchmark'
+require "benchmark"
 
 STDOUT.sync = true # DO NOT REMOVE
 
 def debug(message)
-  STDERR.puts message
+  STDERR.puts("=> #{ message }")
 end

@@ -1,176 +1,96 @@
 require "set"
-require 'benchmark'
+require "benchmark"
 
 STDOUT.sync = true # DO NOT REMOVE
 
 def debug(message)
-  STDERR.puts message
+  STDERR.puts("=> #{ message }")
 end
 
-# Implements a directionless and weightless graph structure with named nodes
-class Graph
-  # Key data storage.
-  # Each key is a node (key == name),
-  # and the value set represents the neighbouring nodes.
-  # private attr_reader :structure
+class GameTurn
+  attr_reader :actions, :me, :opp
 
-  def initialize
-    @structure =
-      Hash.new do |hash, key|
-        hash[key] = {outgoing: Set.new, incoming: Set.new}
-      end
-  end
-
-  # A shorthand access to underlying has node structure
-  def [](node)
-    structure[node]
-  end
-
-  def nodes
-    structure.keys
-  end
-
-  # adds a bi-directional connection between two nodes
-  def connect_nodes_bidirectionally(node1, node2)
-    structure[node1][:incoming] << node2
-    structure[node1][:outgoing] << node2
-
-    structure[node2][:incoming] << node1
-    structure[node2][:outgoing] << node1
-
-    nil
-  end
-
-  # Severs all connections to and from this node
-  # @return [nil]
-  def remove_node(node)
-    structure[node][:incoming].each do |other_node|
-      structure[other_node][:outgoing] -= [node]
+  def initialize(actions:, me:, opp:)
+    debug("actions:")
+    actions.each do |k, v|
+      debug("#{ k }: #{ v }")
     end
+    @actions = actions
 
-    structure.delete(node)
+    @me = me
+    @opp = opp
 
-    nil
+    debug("me: #{ me }")
+    debug("opp: #{ opp }")
   end
 
-  # @root/@destination [String] # "1, 4"
-  #
-  # @return [Array, nil] # will return an array of nodes from root to destination, or nil if no path exists
-  def dijkstra_shortest_path(root, destination)
-    # When we choose the arbitrary starting parent node we mark it as visited by changing its state in the 'visited' structure.
-    visited = Set.new([root])
-
-    parent_node_list = {root => nil}
-
-    # Then, after changing its value from FALSE to TRUE in the "visited" hash, we’d enqueue it.
-    queue = [root]
-
-    # Next, when dequeing the vertex, we need to examine its neighboring nodes, and iterate (loop) through its adjacent linked list.
-    loop do
-      dequeued_node = queue.shift
-      # debug "dequed '#{ dequeued_node }', remaining queue: '#{ queue }'"
-
-      if dequeued_node.nil?
-        return
-        # raise("Queue is empty, but destination not reached!")
-      end
-
-      neighboring_nodes = structure[dequeued_node][:outgoing]
-      # debug "neighboring_nodes for #{ dequeued_node }: '#{ neighboring_nodes }'"
-
-      neighboring_nodes.each do |node|
-        # If either of those neighboring nodes hasn’t been visited (doesn’t have a state of TRUE in the “visited” array),
-        # we mark it as visited, and enqueue it.
-        next if visited.include?(node)
-
-        visited << node
-        parent_node_list[node] = dequeued_node
-
-        # debug "parents: #{ parent_node_list }"
-
-        if node == destination
-          # destination reached
-          path = [node]
-
-          loop do
-            parent_node = parent_node_list[path[0]]
-
-            return path if parent_node.nil?
-
-            path.unshift(parent_node)
-            # debug "path after update: #{ path }"
-          end
-        else
-          queue << node
-        end
-      end
-    end
+  # The only public API, returns the preferable move string
+  def move
+    "BREW 0"
   end
-
-  private
-
-    def structure
-      @structure
-    end
-
-    def initialize_copy(copy)
-      dupped_structure =
-        structure.each_with_object({}) do |(k, v), mem|
-          mem[k] =
-            v.each_with_object({}) do |(sk, sv), smem|
-              smem[sk] = sv.dup
-            end
-        end
-
-      copy.instance_variable_set("@structure", dupped_structure)
-
-      super
-    end
 end
 
-#== Game start
-width, height, my_id = gets.split(" ").map { |x| x.to_i }
-lines = []
-
-height.times do
-  lines << gets.chomp.split("")
-end
-
-map = Map.new(*lines)
-# debug("map came out as:\n#{ map.inspect }")
-
-graph = GridMatrixToGraph.new(map, minimum_neighbors: MINIMUM_NEIGHBORS).call
-# debug "Graph structure is:\n#{ graph.send(:structure) }"
-
-full_graph = GridMatrixToGraph.new(map).call
-# debug "FullGraph structure is:\n#{ full_graph.send(:structure) }"
-
-debug("Starting path precrunch..")
-long_path_150 = LongPathFinder.new(map, full_graph).call
-debug("Long path came out as #{ long_path_150 }")
-
-# Starting cell
-start_node = long_path_150.first #=> [0, 0]
-puts "#{start_node[0]} #{start_node[1]}"
-
-captain = Captain.new(
-  *start_node,
-  map: map, graph: graph, full_graph: full_graph,
-  long_path: long_path_150
-)
-#== Game start end
-
+# game loop
 loop do
-  x, y, my_life, opp_life, torpedo_cooldown, sonar_cooldown, silence_cooldown, mine_cooldown = gets.split(" ").map(&:to_i)
+  action_count = gets.to_i # the number of spells and recipes in play
 
-  sonar_result = gets.chomp
-  opponent_orders = gets.chomp
+  actions = {}
 
-  puts captain.orders(
-    x, y,
-    my_life, opp_life,
-    torpedo_cooldown, sonar_cooldown, silence_cooldown, mine_cooldown,
-    sonar_result,
-    opponent_orders
+  action_count.times do
+    # action_id: the unique ID of this spell or recipe
+    # action_type: in the first league: BREW; later: CAST, OPPONENT_CAST, LEARN, BREW
+    # delta_0: tier-0 ingredient change
+    # delta_1: tier-1 ingredient change
+    # delta_2: tier-2 ingredient change
+    # delta_3: tier-3 ingredient change
+    # price: the price in rupees if this is a potion
+    # tome_index: in the first two leagues: always 0; later: the index in the tome if this is a tome spell, equal to the read-ahead tax; For brews, this is the value of the current urgency bonus
+    # tax_count: in the first two leagues: always 0; later: the amount of taxed tier-0 ingredients you gain from learning this spell; For brews, this is how many times you can still gain an urgency bonus
+    # castable: in the first league: always 0; later: 1 if this is a castable player spell
+    # repeatable: for the first two leagues: always 0; later: 1 if this is a repeatable player spell
+    action_id, action_type, delta_0, delta_1, delta_2, delta_3, price, tome_index, tax_count, castable, repeatable = gets.split(" ")
+    action_id = action_id.to_i
+
+    actions[action_id.to_i] = {
+      delta_0: delta_0.to_i,
+      delta_1: delta_1.to_i,
+      delta_2: delta_2.to_i,
+      delta_3: delta_3.to_i,
+      price: price.to_i,
+      tome_index: tome_index.to_i,
+      tax_count: tax_count.to_i,
+      castable: castable.to_i == 1,
+      repeatable: repeatable.to_i == 1
+    }
+  end
+
+  inv_0, inv_1, inv_2, inv_3, score = gets.split(" ").map(&:to_i)
+
+  me = {
+    inv_0: inv_0,
+    inv_1: inv_1,
+    inv_2: inv_2,
+    inv_3: inv_3,
+    score: score
+  }
+
+  inv_0, inv_1, inv_2, inv_3, score = gets.split(" ").map(&:to_i)
+
+  opp = {
+    inv_0: inv_0,
+    inv_1: inv_1,
+    inv_2: inv_2,
+    inv_3: inv_3,
+    score: score
+  }
+
+  turn = GameTurn.new(
+    actions: actions,
+    me: me,
+    opp: opp
   )
+
+  # in the first league: BREW <id> | WAIT; later: BREW <id> | CAST <id> [<times>] | LEARN <id> | REST | WAIT
+  puts turn.move
 end
+

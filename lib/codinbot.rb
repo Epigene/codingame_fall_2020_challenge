@@ -1,7 +1,8 @@
 # frozen_string_literal: true
 
 require "codinbot/version"
-require "graph"
+require "game_header"
+require "game_turn"
 
 module Codinbot
   class Error < StandardError; end
