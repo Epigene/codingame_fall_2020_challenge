@@ -26,8 +26,173 @@ class GameTurn
 
   # The only public API, returns the preferable move string
   def move
-    "BREW 0"
+    brewable_potion = potions.find { |id, potion| i_can_brew?(potion) }
+
+    unless brewable_potion.nil?
+      return "BREW #{ brewable_potion[0] }"
+    end
+
+    # nothing brewable, let's spell towards the simplest potion
+    simplest_potion_id
+
+    # "CAST"
+
+    # "REST"
+
+
+    # "WAIT"
+    raise("Dunno what to do!")
   end
+
+  private
+
+    # Just potion actions (have price), sorted descending by price
+    #
+    # @return [Hash]
+    def potions
+      @potions ||= actions.to_a.
+        select{ |id, data| data[:type] == "BREW" }.
+        sort_by{ |id, data| -data[:price] }.
+        to_h
+    end
+
+    def my_spells
+      @my_spells ||= actions.to_a.
+        select{ |id, data| data[:type] == "CAST" }.
+        to_h
+    end
+
+    def opp_spells
+
+    end
+
+    # Given wood 2 spells, ingredient relative costs
+    COSTS = {
+      delta0: 1,
+      delta1: 3,
+      delta2: 5,
+      delta3: 7
+    }.freeze
+    #
+    # @potion [Hash] # {:delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>0}
+    # @return [Integer] # the relative cost to make a potion from empty inv
+    def cost_in_moves(potion)
+      costs = potion.map{ |k, v| v * COSTS[k] }
+
+      # minusing since potion deltas are negative
+      -costs.sum
+    end
+
+    # @return [Integer], the id of simplest potion in the market
+    def simplest_potion_id
+      111
+    end
+
+    # Killer method, considers inventory now, target, spells available.
+    # Assumes brewing is not possible, and assumes there's a clear unchanging
+    # hirearchy of ingredients (3>2>1>0)
+    #
+    # @target_inventory [Array] # [1, 2, 3, 4]
+    # @return [String]
+    def next_step_to_towards(target_inventory)
+      whats_missing = inventory_delta(me[:inv], target_inventory)
+
+      if whats_missing[3] > 0
+        spells_for_getting_yellow =
+          my_spells.select{ |id, spell| spell[:delta3].positive? && spell[:castable] }
+
+        castable_spell =
+          spells_for_getting_yellow.find do |id, spell|
+            i_can_cast?(spell)
+          end
+
+        return "CAST #{ castable_spell[0] } Yello!" if castable_spell
+      end
+
+      if whats_missing[2] > 0 || whats_missing[3] > 0
+        spells_for_getting_orange =
+          my_spells.select{ |id, spell| spell[:delta2].positive? && spell[:castable] }
+
+        castable_spell =
+          spells_for_getting_orange.find do |id, spell|
+            i_can_cast?(spell)
+          end
+
+        return "CAST #{ castable_spell[0] } Oranges!" if castable_spell
+      end
+
+      if whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0
+        spells_for_getting_green =
+          my_spells.select{ |id, spell| spell[:delta1].positive? && spell[:castable] }
+
+        castable_spell =
+          spells_for_getting_green.find do |id, spell|
+            i_can_cast?(spell)
+          end
+
+        return "CAST #{ castable_spell[0] } Goo!" if castable_spell
+      end
+
+      if whats_missing[0] > 0 || whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0
+        spells_for_getting_blue =
+          my_spells.select{ |id, spell| spell[:delta0].positive? && spell[:castable] }
+
+        castable_spell =
+          spells_for_getting_blue.find do |id, spell|
+            i_can_cast?(spell)
+          end
+
+        return "CAST #{ castable_spell[0] } Aqua!" if castable_spell
+      end
+
+      "REST I'm beat!"
+    end
+
+    # @spell [Hash] # {:delta0=>0, :delta1=>-1, :delta2=>0, :delta3=>1, :castable=>true}
+    # @return [Boolean]
+    def i_can_cast?(spell)
+      return false unless spell[:castable]
+
+      missing_for_casting = inventory_delta(me[:inv], deltas(spell).map(&:-@))
+
+      !missing_for_casting.sum.positive?
+    end
+
+    # takes in a spell or a potion and returns in-ventory-compatible array
+    def deltas(action)
+      [action[:delta0], action[:delta1], action[:delta2], action[:delta3]]
+    end
+
+    # Returns positions and counts that are missing
+    def inventory_delta(now, target)
+      (0..3).map do |i|
+        have = now[i]
+        need = target[i]
+
+        if have >= need
+          0
+        else
+          need - have
+        end
+      end
+    end
+
+    # @potion [Hash] # {:delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>0}
+    # @return [Boolean]
+    def i_can_brew?(potion)
+      problems =
+        (0..3).to_a.map do |i|
+          next if (me[:inv][i] + potion["delta#{ i }".to_sym]) >= 0
+
+          i
+        end
+
+      can = problems.compact.none?
+
+      debug("I can brew #{ potion }: #{ can }")
+
+      can
+    end
 end
 
 # game loop
@@ -52,6 +217,7 @@ loop do
     action_id = action_id.to_i
 
     actions[action_id.to_i] = {
+      type: action_type,
       delta_0: delta_0.to_i,
       delta_1: delta_1.to_i,
       delta_2: delta_2.to_i,
@@ -64,23 +230,17 @@ loop do
     }
   end
 
-  inv_0, inv_1, inv_2, inv_3, score = gets.split(" ").map(&:to_i)
+  inv0, inv1, inv2, inv3, score = gets.split(" ").map(&:to_i)
 
   me = {
-    inv_0: inv_0,
-    inv_1: inv_1,
-    inv_2: inv_2,
-    inv_3: inv_3,
+    inv: [inv0, inv1, inv2, inv3],
     score: score
   }
 
-  inv_0, inv_1, inv_2, inv_3, score = gets.split(" ").map(&:to_i)
+  inv0, inv1, inv2, inv3, score = gets.split(" ").map(&:to_i)
 
   opp = {
-    inv_0: inv_0,
-    inv_1: inv_1,
-    inv_2: inv_2,
-    inv_3: inv_3,
+    inv: [inv0, inv1, inv2, inv3],
     score: score
   }
 
