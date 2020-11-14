@@ -10,9 +10,8 @@ class GameTurn
   attr_reader :actions, :me, :opp
 
   def initialize(actions:, me:, opp:)
-    debug("actions:")
     actions.each do |k, v|
-      debug("#{ k }: #{ v }")
+      debug("#{ k } => #{ v }", prefix: "")
     end
     @actions = actions
 
@@ -35,7 +34,7 @@ class GameTurn
     if simplest_potion_id
       target_inventory = deltas(potions[simplest_potion_id]).map(&:abs)
 
-      return next_step_to_towards(target_inventory)
+      return next_step_towards(target_inventory)
     end
 
     # "WAIT"
@@ -86,7 +85,7 @@ class GameTurn
     #
     # @target_inventory [Array] # [1, 2, 3, 4]
     # @return [String]
-    def next_step_to_towards(target_inventory)
+    def next_step_towards(target_inventory)
       whats_missing = inventory_delta(me[:inv], target_inventory)
 
       if whats_missing[3] > 0
@@ -101,7 +100,7 @@ class GameTurn
         return "CAST #{ castable_spell[0] } Yello!" if castable_spell
       end
 
-      if whats_missing[2] > 0 || whats_missing[3] > 0
+      if whats_missing[2] > 0 || (whats_missing[3] > 0 && me[:inv][2] == 0)
         spells_for_getting_orange =
           my_spells.select{ |id, spell| spell[:delta2].positive? && spell[:castable] }
 
@@ -113,7 +112,7 @@ class GameTurn
         return "CAST #{ castable_spell[0] } Oranges!" if castable_spell
       end
 
-      if whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0
+      if whats_missing[1] > 0 || ((whats_missing[2] > 0 || whats_missing[3] > 0) && me[:inv][1] == 0)
         spells_for_getting_green =
           my_spells.select{ |id, spell| spell[:delta1].positive? && spell[:castable] }
 
@@ -125,7 +124,7 @@ class GameTurn
         return "CAST #{ castable_spell[0] } Goo!" if castable_spell
       end
 
-      if whats_missing[0] > 0 || whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0
+      if (whats_missing[0] > 0 || (whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0) && me[:inv][0] == 0)
         spells_for_getting_blue =
           my_spells.select{ |id, spell| spell[:delta0].positive? && spell[:castable] }
 
@@ -181,7 +180,7 @@ class GameTurn
 
       can = problems.compact.none?
 
-      debug("I can brew #{ potion }: #{ can }")
+      # debug("I can brew #{ potion }: #{ can }")
 
       can
     end

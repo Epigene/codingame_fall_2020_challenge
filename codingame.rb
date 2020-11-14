@@ -8,6 +8,14 @@ def debug(message)
 end
 
 class GameTurn
+  # Given wood 2 spells, ingredient relative costs
+  COSTS = {
+    delta0: 1,
+    delta1: 3,
+    delta2: 5,
+    delta3: 7
+  }.freeze
+
   attr_reader :actions, :me, :opp
 
   def initialize(actions:, me:, opp:)
@@ -33,12 +41,11 @@ class GameTurn
     end
 
     # nothing brewable, let's spell towards the simplest potion
-    simplest_potion_id
+    if simplest_potion_id
+      target_inventory = deltas(potions[simplest_potion_id]).map(&:abs)
 
-    # "CAST"
-
-    # "REST"
-
+      return next_step_to_towards(target_inventory)
+    end
 
     # "WAIT"
     raise("Dunno what to do!")
@@ -63,21 +70,12 @@ class GameTurn
     end
 
     def opp_spells
-
     end
 
-    # Given wood 2 spells, ingredient relative costs
-    COSTS = {
-      delta0: 1,
-      delta1: 3,
-      delta2: 5,
-      delta3: 7
-    }.freeze
-    #
     # @potion [Hash] # {:delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>0}
     # @return [Integer] # the relative cost to make a potion from empty inv
     def cost_in_moves(potion)
-      costs = potion.map{ |k, v| v * COSTS[k] }
+      costs = potion.slice(*COSTS.keys).map{ |k, v| v * COSTS[k] }
 
       # minusing since potion deltas are negative
       -costs.sum
@@ -85,7 +83,10 @@ class GameTurn
 
     # @return [Integer], the id of simplest potion in the market
     def simplest_potion_id
-      111
+      potions.
+        map{ |id, potion| [id, cost_in_moves(potion)] }.
+        sort_by{|id, cost| cost }.
+        first[0]
     end
 
     # Killer method, considers inventory now, target, spells available.
@@ -204,24 +205,24 @@ loop do
   action_count.times do
     # action_id: the unique ID of this spell or recipe
     # action_type: in the first league: BREW; later: CAST, OPPONENT_CAST, LEARN, BREW
-    # delta_0: tier-0 ingredient change
-    # delta_1: tier-1 ingredient change
-    # delta_2: tier-2 ingredient change
-    # delta_3: tier-3 ingredient change
+    # delta0: tier-0 ingredient change
+    # delta1: tier-1 ingredient change
+    # delta2: tier-2 ingredient change
+    # delta3: tier-3 ingredient change
     # price: the price in rupees if this is a potion
     # tome_index: in the first two leagues: always 0; later: the index in the tome if this is a tome spell, equal to the read-ahead tax; For brews, this is the value of the current urgency bonus
     # tax_count: in the first two leagues: always 0; later: the amount of taxed tier-0 ingredients you gain from learning this spell; For brews, this is how many times you can still gain an urgency bonus
     # castable: in the first league: always 0; later: 1 if this is a castable player spell
     # repeatable: for the first two leagues: always 0; later: 1 if this is a repeatable player spell
-    action_id, action_type, delta_0, delta_1, delta_2, delta_3, price, tome_index, tax_count, castable, repeatable = gets.split(" ")
+    action_id, action_type, delta0, delta1, delta2, delta3, price, tome_index, tax_count, castable, repeatable = gets.split(" ")
     action_id = action_id.to_i
 
     actions[action_id.to_i] = {
       type: action_type,
-      delta_0: delta_0.to_i,
-      delta_1: delta_1.to_i,
-      delta_2: delta_2.to_i,
-      delta_3: delta_3.to_i,
+      delta0: delta0.to_i,
+      delta1: delta1.to_i,
+      delta2: delta2.to_i,
+      delta3: delta3.to_i,
       price: price.to_i,
       tome_index: tome_index.to_i,
       tax_count: tax_count.to_i,

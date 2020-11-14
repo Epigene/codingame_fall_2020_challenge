@@ -57,6 +57,28 @@ RSpec.describe GameTurn do
         is_expected.to include("CAST 2")
       end
     end
+
+    context "when I've just made a green one and should just rest to get another" do
+      let(:me) { {inv: [2, 1, 1, 1]} }
+
+      let(:actions) do
+        {
+          53 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-4, :delta3=>0, :price=>15, :tome_index=>3, :tax_count=>3, :castable=>false, :repeatable=>false},
+          58 => {:type=>"BREW", :delta0=>0, :delta1=>-3, :delta2=>0, :delta3=>-2, :price=>15, :tome_index=>1, :tax_count=>3, :castable=>false, :repeatable=>false},
+          70 => {:type=>"BREW", :delta0=>-2, :delta1=>-2, :delta2=>0, :delta3=>-2, :price=>15, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          67 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-1, :delta3=>-1, :price=>12, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          77 => {:type=>"BREW", :delta0=>-1, :delta1=>-1, :delta2=>-1, :delta3=>-3, :price=>20, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
+          80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          81 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+        }
+      end
+
+      it "returns a move to just rest to make another green" do
+        is_expected.to include("REST")
+      end
+    end
   end
 
   #== Privates ==
@@ -77,9 +99,9 @@ RSpec.describe GameTurn do
     end
   end
 
-  describe "#next_step_to_towards(target_inventory)" do
-    subject(:next_step_to_towards) do
-      instance.send(:next_step_to_towards, target_inventory)
+  describe "#next_step_towards(target_inventory)" do
+    subject(:next_step_towards) do
+      instance.send(:next_step_towards, target_inventory)
     end
 
     let(:actions) do

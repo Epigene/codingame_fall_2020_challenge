@@ -3,6 +3,6 @@ require "benchmark"
 
 STDOUT.sync = true # DO NOT REMOVE
 
-def debug(message)
-  STDERR.puts("=> #{ message }")
+def debug(message, prefix: "=> ")
+  STDERR.puts("#{ prefix }#{ message }")
 end
