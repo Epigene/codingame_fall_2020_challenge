@@ -40,6 +40,25 @@ RSpec.describe GameTurn do
       end
     end
 
+    context "when there's spells to learn, but they're all degenerators" do
+      let(:meta) { {turn: 3} }
+      let(:me) { {inv: [3, 2, 0, 0]} }
+
+      let(:actions) do
+        {
+          11 => {:type=>"LEARN", :delta0=>2, :delta1=>2, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
+          10 => {:type=>"LEARN", :delta0=>4, :delta1=>-1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
+          44 => {type: "BREW", :delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>0, :price=>8},
+        }
+      end
+
+      before { allow(instance).to receive(:simplest_potion_id).and_return(44) }
+
+      it "skips learning, opting to get to brewing instead" do
+        is_expected.to include("BREW 44")
+      end
+    end
+
     context "when there's spells to learn and it's early in the game" do
       let(:meta) { {turn: 3} }
 
@@ -293,6 +312,34 @@ RSpec.describe GameTurn do
       it "returns the missing counts" do
         is_expected.to eq([0, 1, 0, 1])
       end
+    end
+  end
+
+  describe "#degeneration_spell?(spell)" do
+    subject(:degeneration_spell?) { instance.send(:degeneration_spell?, spell) }
+
+    context "when the spell is a definite degenerator" do
+      let(:spell) { {:delta0=>3, :delta1=>-1, :delta2=>0, :delta3=>0, :castable=>true} }
+
+      it { is_expected.to be(true) }
+    end
+
+    context "when the spell is a definite transmuter" do
+      let(:spell) { {:delta0=>0, :delta1=>-2, :delta2=>2, :delta3=>0, :castable=>true} }
+
+      it { is_expected.to be(false) }
+    end
+
+    context "when the spell is a mixture of degen and transmute" do
+      let(:spell) { {:delta0=>2, :delta1=>-2, :delta2=>1, :delta3=>0, :castable=>true} }
+
+      it { is_expected.to be(false) }
+    end
+
+    context "when the spell is a complex transmuter" do
+      let(:spell) { {:delta0=>-1, :delta1=>-2, :delta2=>-3, :delta3=>4, :castable=>true} }
+
+      it { is_expected.to be(false) }
     end
   end
 end

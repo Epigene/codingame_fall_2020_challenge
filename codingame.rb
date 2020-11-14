@@ -106,13 +106,41 @@ class GameTurn
         first[0]
     end
 
+    TOMES_TO_CONSIDER = [0, 1].freeze
+
+    # For now assuming that all 'degeneration' spells are bad, and skipping them
+    #
     # @return [Integer, nil]
     def spell_to_learn_id
       return @spell_to_learn_id if defined?(@spell_to_learn_id)
 
-      return @spell_to_learn_id = nil if meta[:turn] > 20
+      return @spell_to_learn_id = nil if meta[:turn] > 15
 
-      @spell_to_learn_id = tomes.find{ |id, data| data[:tome_index] == 0 }[0]
+      # first candidate is free
+      spell_to_learn =
+        tomes.find do |id, spell|
+          spell[:tome_index] == 0 && !degeneration_spell?(spell)
+        end
+
+      # but subsequent need to consider tax
+      spell_to_learn ||=
+        tomes.find do |id, spell|
+          spell[:tome_index] == 1 && !degeneration_spell?(spell) && me[:inv][0] >= 1
+        end
+
+      spell_to_learn ||=
+        tomes.find do |id, spell|
+          spell[:tome_index] == 2 && !degeneration_spell?(spell) && me[:inv][0] >= 2
+        end
+
+      return @spell_to_learn_id = nil if spell_to_learn.nil?
+
+      @spell_to_learn_id = spell_to_learn[0]
+    end
+
+    # A spell is a degenerator if it's highest consumed ingredient tier is higher than produced tier
+    def degeneration_spell?(spell)
+      (deltas(spell) - [0]).last.negative?
     end
 
     # Killer method, considers inventory now, target, spells available.
