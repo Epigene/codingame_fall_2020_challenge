@@ -27,7 +27,7 @@ RSpec.describe GameTurn do
         let(:me) { {inv: [2, 2, 3, 3]} }
 
         it "moves to brew the best potion" do
-          is_expected.to eq("BREW 61")
+          is_expected.to include("BREW 61")
         end
       end
 
@@ -35,7 +35,7 @@ RSpec.describe GameTurn do
         let(:me) { {inv: [2, 2, 3, 1]} }
 
         it "moves to brew the second best" do
-          is_expected.to eq("BREW 54")
+          is_expected.to include("BREW 54")
         end
       end
     end
@@ -95,6 +95,28 @@ RSpec.describe GameTurn do
 
       it "returns a move to just rest to make another green" do
         is_expected.to include("REST")
+      end
+    end
+
+    context "when we've a bunch of spells" do
+      let(:me) { {inv: [6, 2, 1, 0]} } # total of 9
+      let(:meta) { {turn: 51} }
+
+      let(:actions) do
+        {
+          79 => {:type=>"CAST", :delta0=>4, :delta1=>1, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          2 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          3 => {:type=>"CAST", :delta0=>0, :delta1=>2, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          44 => {:type=>"BREW", :delta0=>0, :delta1=>-5, :delta2=>0, :delta3=>0, :price=>15, :tome_index=>-1, :tax_count=>0, :castable=>false, :repeatable=>false},
+        }
+      end
+
+      before do
+        allow(instance).to receive(:simplest_potion_id).and_return(44)
+      end
+
+      it "returns a move that casts a valid spell (as opposed to one that overfills inventory)" do
+        is_expected.to include("CAST 2")
       end
     end
   end
@@ -201,6 +223,20 @@ RSpec.describe GameTurn do
 
     let(:spell) { {:delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :castable=>true} }
 
+    context "when the spell would overfill inventory" do
+      let(:spell) { {:delta0=>1, :delta1=>0, :delta2=>0, :delta3=>0, :castable=>true} }
+      let(:me) { {inv: [4, 3, 2, 1]} }
+
+      it { is_expected.to be(false) }
+    end
+
+    context "when the spell transmutes and would overfill inventory" do
+      let(:spell) { {:delta0=>2, :delta1=>2, :delta2=>-1, :delta3=>0, :castable=>true} }
+      let(:me) { {inv: [1, 1, 1, 5]} }
+
+      it { is_expected.to be(false) }
+    end
+
     context "when the spell requires no ingredients" do
       let(:spell) { {:delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :castable=>true} }
       let(:me) { {inv: [0, 0, 0, 0]} }
@@ -216,7 +252,7 @@ RSpec.describe GameTurn do
 
     context "when I have complex ingredients to cast" do
       let(:spell) { {:delta0=>-1, :delta1=>-2, :delta2=>-3, :delta3=>4, :castable=>true} }
-      let(:me) { {inv: [2, 4, 8, 1]} }
+      let(:me) { {inv: [2, 3, 4, 1]} }
 
       it { is_expected.to be(true) }
     end

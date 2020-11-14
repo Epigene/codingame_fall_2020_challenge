@@ -16,19 +16,21 @@ class GameTurn
     delta3: 7
   }.freeze
 
+  INVENTORY_SIZE = 10
+
   attr_reader :actions, :me, :opp, :meta
 
   def initialize(actions:, me:, opp:, meta: {turn: 1})
-    actions.each do |k, v|
-      debug("#{ k } => #{ v }", prefix: "")
-    end
+    # actions.each do |k, v|
+    #   debug("#{ k } => #{ v }", prefix: "")
+    # end
     @actions = actions
 
     @me = me
     @opp = opp
 
-    debug("me: #{ me }")
-    debug("opp: #{ opp }")
+    # debug("me: #{ me }")
+    # debug("opp: #{ opp }")
 
     @meta = meta
     debug("meta: #{ meta }")
@@ -39,7 +41,7 @@ class GameTurn
     brewable_potion = potions.find { |id, potion| i_can_brew?(potion) }
 
     unless brewable_potion.nil?
-      return "BREW #{ brewable_potion[0] }"
+      return "BREW #{ brewable_potion[0] } Brewin' #{ brewable_potion[0] }"
     end
 
     # nothing brewable, let's learn some spells!
@@ -131,7 +133,7 @@ class GameTurn
             i_can_cast?(spell)
           end
 
-        return "CAST #{ castable_spell[0] } Yello!" if castable_spell
+        return "CAST #{ castable_spell[0] } Yello for #{ target_inventory }" if castable_spell
       end
 
       if whats_missing[2] > 0 || (whats_missing[3] > 0 && me[:inv][2] == 0)
@@ -143,7 +145,7 @@ class GameTurn
             i_can_cast?(spell)
           end
 
-        return "CAST #{ castable_spell[0] } Oranges!" if castable_spell
+        return "CAST #{ castable_spell[0] } Oranges for #{ target_inventory }" if castable_spell
       end
 
       if whats_missing[1] > 0 || ((whats_missing[2] > 0 || whats_missing[3] > 0) && me[:inv][1] == 0)
@@ -155,7 +157,7 @@ class GameTurn
             i_can_cast?(spell)
           end
 
-        return "CAST #{ castable_spell[0] } Goo!" if castable_spell
+        return "CAST #{ castable_spell[0] } Goo for #{ target_inventory }" if castable_spell
       end
 
       if (whats_missing[0] > 0 || (whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0) && me[:inv][0] == 0)
@@ -167,16 +169,22 @@ class GameTurn
             i_can_cast?(spell)
           end
 
-        return "CAST #{ castable_spell[0] } Aqua!" if castable_spell
+        return "CAST #{ castable_spell[0] } Aqua for #{ target_inventory }" if castable_spell
       end
 
-      "REST I'm beat!"
+      "REST I'm beat while working towards #{ target_inventory }"
     end
 
     # @spell [Hash] # {:delta0=>0, :delta1=>-1, :delta2=>0, :delta3=>1, :castable=>true}
     # @return [Boolean]
     def i_can_cast?(spell)
       return false unless spell[:castable]
+
+      # can be negative if condenses to better
+      items_produced = deltas(spell).sum
+
+      # overfilling inventory detected!
+      return false if items_produced + me[:inv].sum > INVENTORY_SIZE
 
       missing_for_casting = inventory_delta(me[:inv], deltas(spell).map(&:-@))
 
