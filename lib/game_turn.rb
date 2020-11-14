@@ -107,8 +107,29 @@ class GameTurn
 
       return @spell_to_learn_id = nil if meta[:turn] > 15
 
-      # first candidate is free
+      # first pass, looking over up to fourth slot for pure giver spells
       spell_to_learn =
+        tomes.find do |id, spell|
+          spell[:tome_index] == 0 && pure_giver_spell?(spell)
+        end
+
+      spell_to_learn ||=
+        tomes.find do |id, spell|
+          spell[:tome_index] == 1 && pure_giver_spell?(spell) && me[:inv][0] >= 1
+        end
+
+      spell_to_learn ||=
+        tomes.find do |id, spell|
+          spell[:tome_index] == 2 && pure_giver_spell?(spell) && me[:inv][0] >= 2
+        end
+
+      spell_to_learn ||=
+        tomes.find do |id, spell|
+          spell[:tome_index] == 3 && pure_giver_spell?(spell) && me[:inv][0] >= 3
+        end
+
+      # first candidate is free
+      spell_to_learn ||=
         tomes.find do |id, spell|
           spell[:tome_index] == 0 && !degeneration_spell?(spell)
         end
@@ -132,6 +153,10 @@ class GameTurn
     # A spell is a degenerator if it's highest consumed ingredient tier is higher than produced tier
     def degeneration_spell?(spell)
       (deltas(spell) - [0]).last.negative?
+    end
+
+    def pure_giver_spell?(spell)
+      deltas(spell).find(&:negative?).nil?
     end
 
     # Killer method, considers inventory now, target, spells available.

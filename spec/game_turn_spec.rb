@@ -59,13 +59,30 @@ RSpec.describe GameTurn do
       end
     end
 
-    context "when there's spells to learn and it's early in the game" do
+    context "when there's pure giver spell to learn and it's early in the game" do
       let(:meta) { {turn: 3} }
+      let(:me) { {inv: [3, 2, 0, 0]} }
 
       let(:actions) do
         {
           11 => {:type=>"LEARN", :delta0=>0, :delta1=>-2, :delta2=>2, :delta3=>0, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-          10 => {:type=>"LEARN", :delta0=>1, :delta1=>1, :delta2=>1, :delta3=>1, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true}
+          10 => {:type=>"LEARN", :delta0=>2, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true}
+        }
+      end
+
+      it "returns the move to learn the pure giver spell" do
+        is_expected.to include("LEARN 10")
+      end
+    end
+
+    context "when there's a regular transmuter to learn and it's early in the game" do
+      let(:meta) { {turn: 3} }
+      let(:me) { {inv: [3, 2, 0, 0]} }
+
+      let(:actions) do
+        {
+          11 => {:type=>"LEARN", :delta0=>0, :delta1=>-2, :delta2=>2, :delta3=>0, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
+          10 => {:type=>"LEARN", :delta0=>3, :delta1=>-2, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true}
         }
       end
 
@@ -338,6 +355,22 @@ RSpec.describe GameTurn do
 
     context "when the spell is a complex transmuter" do
       let(:spell) { {:delta0=>-1, :delta1=>-2, :delta2=>-3, :delta3=>4, :castable=>true} }
+
+      it { is_expected.to be(false) }
+    end
+  end
+
+  describe "#pure_giver_spell?(spell)" do
+    subject(:pure_giver_spell?) { instance.send(:pure_giver_spell?, spell) }
+
+    context "when the spell is indeed a pure giver" do
+      let(:spell) { {:delta0=>2, :delta1=>1, :delta2=>0, :delta3=>0, :castable=>true} }
+
+      it { is_expected.to be(true) }
+    end
+
+    context "when the spell requires even one ingredient, even if transmuting up" do
+      let(:spell) { {:delta0=>-1, :delta1=>2, :delta2=>2, :delta3=>2, :castable=>true} }
 
       it { is_expected.to be(false) }
     end
