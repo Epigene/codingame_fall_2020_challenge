@@ -3,8 +3,8 @@ require "benchmark"
 
 STDOUT.sync = true # DO NOT REMOVE
 
-def debug(message)
-  STDERR.puts("=> #{ message }")
+def debug(message, prefix: "=> ")
+  STDERR.puts("#{ prefix }#{ message }")
 end
 
 class GameTurn
@@ -16,12 +16,11 @@ class GameTurn
     delta3: 7
   }.freeze
 
-  attr_reader :actions, :me, :opp
+  attr_reader :actions, :me, :opp, :meta
 
-  def initialize(actions:, me:, opp:)
-    debug("actions:")
+  def initialize(actions:, me:, opp:, meta: {turn: 1})
     actions.each do |k, v|
-      debug("#{ k }: #{ v }")
+      debug("#{ k } => #{ v }", prefix: "")
     end
     @actions = actions
 
@@ -30,6 +29,9 @@ class GameTurn
 
     debug("me: #{ me }")
     debug("opp: #{ opp }")
+
+    @meta = meta
+    debug("meta: #{ meta }")
   end
 
   # The only public API, returns the preferable move string
@@ -40,11 +42,16 @@ class GameTurn
       return "BREW #{ brewable_potion[0] }"
     end
 
+    # nothing brewable, let's learn some spells!
+    if spell_to_learn_id
+      return "LEARN #{ spell_to_learn_id } Studyin'"
+    end
+
     # nothing brewable, let's spell towards the simplest potion
     if simplest_potion_id
       target_inventory = deltas(potions[simplest_potion_id]).map(&:abs)
 
-      return next_step_to_towards(target_inventory)
+      return next_step_towards(target_inventory)
     end
 
     # "WAIT"
@@ -69,6 +76,12 @@ class GameTurn
         to_h
     end
 
+    def tomes
+      @tomes ||= actions.to_a.
+        select{ |id, data| data[:type] == "LEARN" }.
+        to_h
+    end
+
     def opp_spells
     end
 
@@ -83,10 +96,21 @@ class GameTurn
 
     # @return [Integer], the id of simplest potion in the market
     def simplest_potion_id
-      potions.
+      return @simplest_potion_id if defined?(@simplest_potion_id)
+
+      @simplest_potion_id = potions.
         map{ |id, potion| [id, cost_in_moves(potion)] }.
         sort_by{|id, cost| cost }.
         first[0]
+    end
+
+    # @return [Integer, nil]
+    def spell_to_learn_id
+      return @spell_to_learn_id if defined?(@spell_to_learn_id)
+
+      return @spell_to_learn_id = nil if meta[:turn] > 20
+
+      @spell_to_learn_id = tomes.find{ |id, data| data[:tome_index] == 0 }[0]
     end
 
     # Killer method, considers inventory now, target, spells available.
@@ -95,7 +119,7 @@ class GameTurn
     #
     # @target_inventory [Array] # [1, 2, 3, 4]
     # @return [String]
-    def next_step_to_towards(target_inventory)
+    def next_step_towards(target_inventory)
       whats_missing = inventory_delta(me[:inv], target_inventory)
 
       if whats_missing[3] > 0
@@ -110,7 +134,7 @@ class GameTurn
         return "CAST #{ castable_spell[0] } Yello!" if castable_spell
       end
 
-      if whats_missing[2] > 0 || whats_missing[3] > 0
+      if whats_missing[2] > 0 || (whats_missing[3] > 0 && me[:inv][2] == 0)
         spells_for_getting_orange =
           my_spells.select{ |id, spell| spell[:delta2].positive? && spell[:castable] }
 
@@ -122,7 +146,7 @@ class GameTurn
         return "CAST #{ castable_spell[0] } Oranges!" if castable_spell
       end
 
-      if whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0
+      if whats_missing[1] > 0 || ((whats_missing[2] > 0 || whats_missing[3] > 0) && me[:inv][1] == 0)
         spells_for_getting_green =
           my_spells.select{ |id, spell| spell[:delta1].positive? && spell[:castable] }
 
@@ -134,7 +158,7 @@ class GameTurn
         return "CAST #{ castable_spell[0] } Goo!" if castable_spell
       end
 
-      if whats_missing[0] > 0 || whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0
+      if (whats_missing[0] > 0 || (whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0) && me[:inv][0] == 0)
         spells_for_getting_blue =
           my_spells.select{ |id, spell| spell[:delta0].positive? && spell[:castable] }
 
@@ -190,13 +214,14 @@ class GameTurn
 
       can = problems.compact.none?
 
-      debug("I can brew #{ potion }: #{ can }")
+      # debug("I can brew #{ potion }: #{ can }")
 
       can
     end
 end
 
 # game loop
+@turn = 1
 loop do
   action_count = gets.to_i # the number of spells and recipes in play
 
@@ -246,6 +271,7 @@ loop do
   }
 
   turn = GameTurn.new(
+    meta: {turn: @turn},
     actions: actions,
     me: me,
     opp: opp
@@ -253,5 +279,6 @@ loop do
 
   # in the first league: BREW <id> | WAIT; later: BREW <id> | CAST <id> [<times>] | LEARN <id> | REST | WAIT
   puts turn.move
+  @turn += 1
 end
 

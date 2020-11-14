@@ -1,4 +1,5 @@
 # game loop
+@turn = 1
 loop do
   action_count = gets.to_i # the number of spells and recipes in play
 
@@ -48,6 +49,7 @@ loop do
   }
 
   turn = GameTurn.new(
+    meta: {turn: @turn},
     actions: actions,
     me: me,
     opp: opp
@@ -55,4 +57,5 @@ loop do
 
   # in the first league: BREW <id> | WAIT; later: BREW <id> | CAST <id> [<times>] | LEARN <id> | REST | WAIT
   puts turn.move
+  @turn += 1
 end

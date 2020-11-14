@@ -7,9 +7,9 @@ class GameTurn
     delta3: 7
   }.freeze
 
-  attr_reader :actions, :me, :opp
+  attr_reader :actions, :me, :opp, :meta
 
-  def initialize(actions:, me:, opp:)
+  def initialize(actions:, me:, opp:, meta: {turn: 1})
     actions.each do |k, v|
       debug("#{ k } => #{ v }", prefix: "")
     end
@@ -20,6 +20,9 @@ class GameTurn
 
     debug("me: #{ me }")
     debug("opp: #{ opp }")
+
+    @meta = meta
+    debug("meta: #{ meta }")
   end
 
   # The only public API, returns the preferable move string
@@ -28,6 +31,11 @@ class GameTurn
 
     unless brewable_potion.nil?
       return "BREW #{ brewable_potion[0] }"
+    end
+
+    # nothing brewable, let's learn some spells!
+    if spell_to_learn_id
+      return "LEARN #{ spell_to_learn_id } Studyin'"
     end
 
     # nothing brewable, let's spell towards the simplest potion
@@ -59,6 +67,12 @@ class GameTurn
         to_h
     end
 
+    def tomes
+      @tomes ||= actions.to_a.
+        select{ |id, data| data[:type] == "LEARN" }.
+        to_h
+    end
+
     def opp_spells
     end
 
@@ -73,10 +87,21 @@ class GameTurn
 
     # @return [Integer], the id of simplest potion in the market
     def simplest_potion_id
-      potions.
+      return @simplest_potion_id if defined?(@simplest_potion_id)
+
+      @simplest_potion_id = potions.
         map{ |id, potion| [id, cost_in_moves(potion)] }.
         sort_by{|id, cost| cost }.
         first[0]
+    end
+
+    # @return [Integer, nil]
+    def spell_to_learn_id
+      return @spell_to_learn_id if defined?(@spell_to_learn_id)
+
+      return @spell_to_learn_id = nil if meta[:turn] > 20
+
+      @spell_to_learn_id = tomes.find{ |id, data| data[:tome_index] == 0 }[0]
     end
 
     # Killer method, considers inventory now, target, spells available.

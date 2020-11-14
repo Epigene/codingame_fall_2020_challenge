@@ -3,10 +3,11 @@
 # rspec spec/game_turn_spec.rb
 RSpec.describe GameTurn do
   let(:instance) { described_class.new(**options) }
-  let(:options) { {actions: actions, me: me, opp: opp} }
+  let(:options) { {actions: actions, me: me, opp: opp, meta: meta} }
   let(:actions) { {} }
   let(:me) { {} }
   let(:opp) { {} }
+  let(:meta) { {} }
 
   describe "#move" do
     subject(:move) { instance.move }
@@ -39,6 +40,21 @@ RSpec.describe GameTurn do
       end
     end
 
+    context "when there's spells to learn and it's early in the game" do
+      let(:meta) { {turn: 3} }
+
+      let(:actions) do
+        {
+          11 => {:type=>"LEARN", :delta0=>0, :delta1=>-2, :delta2=>2, :delta3=>0, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
+          10 => {:type=>"LEARN", :delta0=>1, :delta1=>1, :delta2=>1, :delta3=>1, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true}
+        }
+      end
+
+      it "returns the move to learn the first spell" do
+        is_expected.to include("LEARN 11")
+      end
+    end
+
     context "when there's a simple potion and we should work towards it" do
       let(:actions) do
         {
@@ -52,6 +68,7 @@ RSpec.describe GameTurn do
       end
 
       let(:me) { {inv: [3, 0, 0, 0]} }
+      let(:meta) { {turn: 51} }
 
       it "returns the move to transmute to green" do
         is_expected.to include("CAST 2")
@@ -60,6 +77,7 @@ RSpec.describe GameTurn do
 
     context "when I've just made a green one and should just rest to get another" do
       let(:me) { {inv: [2, 1, 1, 1]} }
+      let(:meta) { {turn: 51} }
 
       let(:actions) do
         {
