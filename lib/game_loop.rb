@@ -1,5 +1,8 @@
 # game loop
+SIMULATOR = GameSimulator.new
+
 @turn = 1
+
 loop do
   action_count = gets.to_i # the number of spells and recipes in play
 

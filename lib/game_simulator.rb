@@ -1,12 +1,3 @@
-require "set"
-require "benchmark"
-
-STDOUT.sync = true # DO NOT REMOVE
-
-def debug(message, prefix: "=> ")
-  STDERR.puts("#{ prefix }#{ message }")
-end
-
 class GameSimulator
   # This class provides methods to advance game state into the future to a certain degree
   # opponent moves can naturally not be simulated, and impossible to know what new spells
@@ -166,6 +157,7 @@ class GameSimulator
     when "LEARN"
       id = portions[1].to_i
 
+      # needed to know what will be the added spell's id
       max_cast_id =
         position[:actions].max_by do |id, data|
           if SPELL_TYPES.include?(data[:type])
@@ -175,14 +167,35 @@ class GameSimulator
           end
         end.first
 
+      learn_index = position[:actions][id][:tome_index]
+
       # 1. learning
       #   removes learned spell from list
       #   adds a spell with correct id to own spells
-      position.dup.tap do |p|
-        p.delete(id)
-        p[:actions][max_cast_id.next] = LEARNED_SPELL_DATA[max_cast_id.next]
-        p[:meta][:turn] += 1
+      p = position.dup
+      p[:actions].reject!{ |k, v| k == id }
+
+      p[:actions].transform_values! do |v|
+        if v[:type] == "LEARN"
+          if v[:tome_index] > learn_index
+            v[:tome_index] -= 1
+          end
+
+          if v[:tome_index] < learn_index
+            v[:tax_count] += 1
+          end
+
+          v
+        else
+          v
+        end
       end
+
+      p[:actions][max_cast_id.next] = LEARNED_SPELL_DATA[id]
+      p[:meta][:turn] += 1
+      p[:me][:inv][0] -= learn_index
+
+      p
     when "CAST"
       # 2. casting
       #   changes my inv accordingly
@@ -203,360 +216,3 @@ class GameSimulator
     # 3. Loop over results with 1. again. Can use heuristics to try promising outcomes first
   end
 end
-
-class GameTurn
-  # Given wood 2 spells, ingredient relative costs
-  COSTS = {
-    delta0: 1,
-    delta1: 3,
-    delta2: 5,
-    delta3: 7
-  }.freeze
-
-  INVENTORY_SIZE = 10
-
-  attr_reader :actions, :me, :opp, :meta
-
-  def initialize(actions:, me:, opp:, meta: {turn: 1})
-    actions.each do |k, v|
-      debug("#{ k } => #{ v },", prefix: "")
-    end
-    @actions = actions
-
-    @me = me
-    @opp = opp
-
-    debug("me: #{ me }")
-    # debug("opp: #{ opp }")
-
-    @meta = meta
-    debug("meta: #{ meta }")
-  end
-
-  # The only public API, returns the preferable move string
-  def move
-    brewable_potion = potions.find { |id, potion| i_can_brew?(potion) }
-
-    unless brewable_potion.nil?
-      return "BREW #{ brewable_potion[0] } Brewin' #{ brewable_potion[0] }"
-    end
-
-    # nothing brewable, let's learn some spells!
-    if spell_to_learn_id
-      return "LEARN #{ spell_to_learn_id } Studyin'"
-    end
-
-    # nothing brewable, let's spell towards the simplest potion
-    if simplest_potion_id
-      target_inventory = deltas(potions[simplest_potion_id]).map(&:abs)
-
-      return next_step_towards(target_inventory)
-    end
-
-    # "WAIT"
-    raise("Dunno what to do!")
-  end
-
-  # V2, uses perspective cruncher
-  # Cruncher has the brute-forcing component that is reliable and deterministic.
-  # And the goal component, which I am not sure about at this point.
-  # Goal could be:
-  # 1. Always leftmost potion, snag dat bonus
-  # 2. Always the priciest potion
-  # 3. always the quickest to make (but this depends on spells, dont it?)
-  # 4. cost/benefit idea, but also depends on spell availability.
-  # 5. can theoretically use perspective cruncher to evaluate cost to make any resource
-  # 6. possibly less random, would be to use a graph structure to determine how many resources I
-  #    can (or could) make in some most efficient setup
-  #
-  # For now going for 1. always leftmost potion!
-  #def move
-  #  GameSimulator
-  #end
-
-  private
-
-    # Just potion actions (have price), sorted descending by price
-    #
-    # @return [Hash]
-    def potions
-      @potions ||= actions.to_a.
-        select{ |id, data| data[:type] == "BREW" }.
-        sort_by{ |id, data| -data[:price] }.
-        to_h
-    end
-
-    def my_spells
-      @my_spells ||= actions.to_a.
-        select{ |id, data| data[:type] == "CAST" }.
-        to_h
-    end
-
-    def tomes
-      @tomes ||= actions.to_a.
-        select{ |id, data| data[:type] == "LEARN" }.
-        to_h
-    end
-
-    def opp_spells
-    end
-
-    # @potion [Hash] # {:delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>0}
-    # @return [Integer] # the relative cost to make a potion from empty inv
-    def cost_in_moves(potion)
-      costs = potion.slice(*COSTS.keys).map{ |k, v| v * COSTS[k] }
-
-      # minusing since potion deltas are negative
-      -costs.sum
-    end
-
-    # @return [Integer], the id of simplest potion in the market
-    def simplest_potion_id
-      return @simplest_potion_id if defined?(@simplest_potion_id)
-
-      @simplest_potion_id = potions.
-        map{ |id, potion| [id, cost_in_moves(potion)] }.
-        sort_by{|id, cost| cost }.
-        first[0]
-    end
-
-    TOMES_TO_CONSIDER = [0, 1].freeze
-
-    # For now assuming that all 'degeneration' spells are bad, and skipping them
-    #
-    # @return [Integer, nil]
-    def spell_to_learn_id
-      return @spell_to_learn_id if defined?(@spell_to_learn_id)
-
-      return @spell_to_learn_id = nil if meta[:turn] > 15
-
-      # first pass, looking over up to fourth slot for pure giver spells
-      spell_to_learn =
-        tomes.find do |id, spell|
-          spell[:tome_index] == 0 && pure_giver_spell?(spell)
-        end
-
-      spell_to_learn ||=
-        tomes.find do |id, spell|
-          spell[:tome_index] == 1 && pure_giver_spell?(spell) && me[:inv][0] >= 1
-        end
-
-      spell_to_learn ||=
-        tomes.find do |id, spell|
-          spell[:tome_index] == 2 && pure_giver_spell?(spell) && me[:inv][0] >= 2
-        end
-
-      spell_to_learn ||=
-        tomes.find do |id, spell|
-          spell[:tome_index] == 3 && pure_giver_spell?(spell) && me[:inv][0] >= 3
-        end
-
-      # first candidate is free
-      spell_to_learn ||=
-        tomes.find do |id, spell|
-          spell[:tome_index] == 0 && !degeneration_spell?(spell)
-        end
-
-      # but subsequent need to consider tax
-      spell_to_learn ||=
-        tomes.find do |id, spell|
-          spell[:tome_index] == 1 && !degeneration_spell?(spell) && me[:inv][0] >= 1
-        end
-
-      spell_to_learn ||=
-        tomes.find do |id, spell|
-          spell[:tome_index] == 2 && !degeneration_spell?(spell) && me[:inv][0] >= 2
-        end
-
-      return @spell_to_learn_id = nil if spell_to_learn.nil?
-
-      @spell_to_learn_id = spell_to_learn[0]
-    end
-
-    # A spell is a degenerator if it's highest consumed ingredient tier is higher than produced tier
-    def degeneration_spell?(spell)
-      (deltas(spell) - [0]).last.negative?
-    end
-
-    def pure_giver_spell?(spell)
-      deltas(spell).find(&:negative?).nil?
-    end
-
-    # Killer method, considers inventory now, target, spells available.
-    # Assumes brewing is not possible, and assumes there's a clear unchanging
-    # hirearchy of ingredients (3>2>1>0)
-    #
-    # @target_inventory [Array] # [1, 2, 3, 4]
-    # @return [String]
-    def next_step_towards(target_inventory)
-      whats_missing = inventory_delta(me[:inv], target_inventory)
-
-      if whats_missing[3] > 0
-        spells_for_getting_yellow =
-          my_spells.select{ |id, spell| spell[:delta3].positive? && spell[:castable] }
-
-        castable_spell =
-          spells_for_getting_yellow.find do |id, spell|
-            i_can_cast?(spell)
-          end
-
-        return "CAST #{ castable_spell[0] } Yello for #{ target_inventory }" if castable_spell
-      end
-
-      if whats_missing[2] > 0 || (whats_missing[3] > 0 && me[:inv][2] == 0)
-        spells_for_getting_orange =
-          my_spells.select{ |id, spell| spell[:delta2].positive? && spell[:castable] }
-
-        castable_spell =
-          spells_for_getting_orange.find do |id, spell|
-            i_can_cast?(spell)
-          end
-
-        return "CAST #{ castable_spell[0] } Oranges for #{ target_inventory }" if castable_spell
-      end
-
-      if whats_missing[1] > 0 || ((whats_missing[2] > 0 || whats_missing[3] > 0) && me[:inv][1] == 0)
-        spells_for_getting_green =
-          my_spells.select{ |id, spell| spell[:delta1].positive? && spell[:castable] }
-
-        castable_spell =
-          spells_for_getting_green.find do |id, spell|
-            i_can_cast?(spell)
-          end
-
-        return "CAST #{ castable_spell[0] } Goo for #{ target_inventory }" if castable_spell
-      end
-
-      if (whats_missing[0] > 0 || (whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0) && me[:inv][0] == 0)
-        spells_for_getting_blue =
-          my_spells.select{ |id, spell| spell[:delta0].positive? && spell[:castable] }
-
-        castable_spell =
-          spells_for_getting_blue.find do |id, spell|
-            i_can_cast?(spell)
-          end
-
-        return "CAST #{ castable_spell[0] } Aqua for #{ target_inventory }" if castable_spell
-      end
-
-      "REST I'm beat while working towards #{ target_inventory }"
-    end
-
-    # @spell [Hash] # {:delta0=>0, :delta1=>-1, :delta2=>0, :delta3=>1, :castable=>true}
-    # @return [Boolean]
-    def i_can_cast?(spell)
-      return false unless spell[:castable]
-
-      # can be negative if condenses to better
-      items_produced = deltas(spell).sum
-
-      # overfilling inventory detected!
-      return false if items_produced + me[:inv].sum > INVENTORY_SIZE
-
-      missing_for_casting = inventory_delta(me[:inv], deltas(spell).map(&:-@))
-
-      !missing_for_casting.sum.positive?
-    end
-
-    # takes in a spell or a potion and returns in-ventory-compatible array
-    def deltas(action)
-      [action[:delta0], action[:delta1], action[:delta2], action[:delta3]]
-    end
-
-    # Returns positions and counts that are missing
-    def inventory_delta(now, target)
-      (0..3).map do |i|
-        have = now[i]
-        need = target[i]
-
-        if have >= need
-          0
-        else
-          need - have
-        end
-      end
-    end
-
-    # @potion [Hash] # {:delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>0}
-    # @return [Boolean]
-    def i_can_brew?(potion)
-      problems =
-        (0..3).to_a.map do |i|
-          next if (me[:inv][i] + potion["delta#{ i }".to_sym]) >= 0
-
-          i
-        end
-
-      can = problems.compact.none?
-
-      # debug("I can brew #{ potion }: #{ can }")
-
-      can
-    end
-end
-
-# game loop
-SIMULATOR = GameSimulator.new
-
-@turn = 1
-
-loop do
-  action_count = gets.to_i # the number of spells and recipes in play
-
-  actions = {}
-
-  action_count.times do
-    # action_id: the unique ID of this spell or recipe
-    # action_type: in the first league: BREW; later: CAST, OPPONENT_CAST, LEARN, BREW
-    # delta0: tier-0 ingredient change
-    # delta1: tier-1 ingredient change
-    # delta2: tier-2 ingredient change
-    # delta3: tier-3 ingredient change
-    # price: the price in rupees if this is a potion
-    # tome_index: in the first two leagues: always 0; later: the index in the tome if this is a tome spell, equal to the read-ahead tax; For brews, this is the value of the current urgency bonus
-    # tax_count: in the first two leagues: always 0; later: the amount of taxed tier-0 ingredients you gain from learning this spell; For brews, this is how many times you can still gain an urgency bonus
-    # castable: in the first league: always 0; later: 1 if this is a castable player spell
-    # repeatable: for the first two leagues: always 0; later: 1 if this is a repeatable player spell
-    action_id, action_type, delta0, delta1, delta2, delta3, price, tome_index, tax_count, castable, repeatable = gets.split(" ")
-    action_id = action_id.to_i
-
-    actions[action_id.to_i] = {
-      type: action_type,
-      delta0: delta0.to_i,
-      delta1: delta1.to_i,
-      delta2: delta2.to_i,
-      delta3: delta3.to_i,
-      price: price.to_i,
-      tome_index: tome_index.to_i,
-      tax_count: tax_count.to_i,
-      castable: castable.to_i == 1,
-      repeatable: repeatable.to_i == 1
-    }
-  end
-
-  inv0, inv1, inv2, inv3, score = gets.split(" ").map(&:to_i)
-
-  me = {
-    inv: [inv0, inv1, inv2, inv3],
-    score: score
-  }
-
-  inv0, inv1, inv2, inv3, score = gets.split(" ").map(&:to_i)
-
-  opp = {
-    inv: [inv0, inv1, inv2, inv3],
-    score: score
-  }
-
-  turn = GameTurn.new(
-    meta: {turn: @turn},
-    actions: actions,
-    me: me,
-    opp: opp
-  )
-
-  # in the first league: BREW <id> | WAIT; later: BREW <id> | CAST <id> [<times>] | LEARN <id> | REST | WAIT
-  puts turn.move
-  @turn += 1
-end
-

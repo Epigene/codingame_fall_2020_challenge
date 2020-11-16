@@ -12,15 +12,15 @@ class GameTurn
   attr_reader :actions, :me, :opp, :meta
 
   def initialize(actions:, me:, opp:, meta: {turn: 1})
-    # actions.each do |k, v|
-    #   debug("#{ k } => #{ v }", prefix: "")
-    # end
+    actions.each do |k, v|
+      debug("#{ k } => #{ v },", prefix: "")
+    end
     @actions = actions
 
     @me = me
     @opp = opp
 
-    # debug("me: #{ me }")
+    debug("me: #{ me }")
     # debug("opp: #{ opp }")
 
     @meta = meta
@@ -50,6 +50,23 @@ class GameTurn
     # "WAIT"
     raise("Dunno what to do!")
   end
+
+  # V2, uses perspective cruncher
+  # Cruncher has the brute-forcing component that is reliable and deterministic.
+  # And the goal component, which I am not sure about at this point.
+  # Goal could be:
+  # 1. Always leftmost potion, snag dat bonus
+  # 2. Always the priciest potion
+  # 3. always the quickest to make (but this depends on spells, dont it?)
+  # 4. cost/benefit idea, but also depends on spell availability.
+  # 5. can theoretically use perspective cruncher to evaluate cost to make any resource
+  # 6. possibly less random, would be to use a graph structure to determine how many resources I
+  #    can (or could) make in some most efficient setup
+  #
+  # For now going for 1. always leftmost potion!
+  #def move
+  #  GameSimulator
+  #end
 
   private
 
