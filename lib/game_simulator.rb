@@ -140,6 +140,10 @@ class GameSimulator
 
   SPELL_TYPES = ["CAST", "OPPONENT_CAST"].freeze
 
+  def self.the_instance
+    @the_instance ||= new
+  end
+
   def initialize; end
 
   # Returns the init parameters for the GameTurn that would follow after a certain move
@@ -147,15 +151,36 @@ class GameSimulator
   #
   # @position [Hash] #
   # @return [Hash]
-  def result(position:, move: "")
+  def result(position:, move:)
     portions = move.split(" ")
     verb = portions.first #=> "LEARN", "REST", "CAST"
 
     case verb
     when "REST"
+      raise("do not rest twice in a row!") if position.dig(:meta, :previous_move).to_s.start_with?("REST")
 
+      p = position.dup
+
+      p[:actions].transform_values! do |v|
+        if v[:type] == "CAST"
+          v[:castable] = true
+          v
+        else
+          v
+        end
+      end
+
+      p[:meta][:turn] += 1
+
+      p
     when "LEARN"
       id = portions[1].to_i
+      learned_spell = position[:actions][id]
+      learn_index = learned_spell[:tome_index]
+
+      if learn_index > position[:me][:inv][0]
+        raise("insufficient aqua for learning tax!")
+      end
 
       # needed to know what will be the added spell's id
       max_cast_id =
@@ -166,8 +191,6 @@ class GameSimulator
             -1
           end
         end.first
-
-      learn_index = position[:actions][id][:tome_index]
 
       # 1. learning
       #   removes learned spell from list
@@ -194,12 +217,57 @@ class GameSimulator
       p[:actions][max_cast_id.next] = LEARNED_SPELL_DATA[id]
       p[:meta][:turn] += 1
       p[:me][:inv][0] -= learn_index
+      p[:me][:inv][0] += learned_spell[:tax_count] if learned_spell[:tax_count].positive?
 
       p
     when "CAST"
+      id = portions[1].to_i
+      cast_spell = position[:actions][id]
+
+      raise("spell exhausted!") unless cast_spell[:castable]
+
+      cast_times =
+        if portions.size > 2
+          portions[2].to_i
+        else
+          1
+        end
+
+      if cast_times > 1 && !cast_spell[:repeatable]
+        raise("spell can't multicast!")
+      end
+
+      operation =
+        if cast_times == 1
+          deltas(cast_spell)
+        else
+          deltas(cast_spell).map{ |v| v * cast_times}
+        end
+
+      casting_check = can_cast?(operation: operation, from: position[:me][:inv])
+
+      if !casting_check[:can]
+        if casting_check[:detail] == :insufficient_ingredients
+          raise("insufficient ingredients for casting!") if cast_times == 1
+          raise("insufficient ingredients for multicasting!")
+        else
+          raise("casting overfills inventory!")
+        end
+      end
+
+      p = position.dup
+
+      cast_times.times do
+        p[:me][:inv] = p[:me][:inv].add(deltas(cast_spell))
+      end
+
+      p[:actions][id][:castable] = false
+
       # 2. casting
       #   changes my inv accordingly
       #   changes spell castability accordingly
+      p[:meta][:turn] += 1
+      p
     else
       {error: "verb '#{ verb }' not supported"}
     end
@@ -214,5 +282,24 @@ class GameSimulator
     #      Never rest twice in a row
     # 2. loop over OK moves, get results
     # 3. Loop over results with 1. again. Can use heuristics to try promising outcomes first
+  end
+
+  # Takes into account the two constraints
+  # - ingredients must suffice
+  # - inventory of 10 may not be exceeded
+  # @return [Hash] {can: true/false, detail: :insufficient_ingredients/:overflow}
+  def can_cast?(operation:, from:)
+    @cast_cache ||= {}
+    key = [operation, from]
+
+    if @cast_cache.key?(key)
+      @cast_cache[key]
+    else
+      result = from.add(operation)
+
+      return @cast_cache[key] = {can: false, detail: :insufficient_ingredients} if result.find{ |v| v.negative? }
+      return @cast_cache[key] = {can: false, detail: :overflow} if result.sum > INVENTORY_SIZE
+      @cast_cache[key] = {can: true}
+    end
   end
 end

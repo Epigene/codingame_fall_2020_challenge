@@ -7,8 +7,6 @@ class GameTurn
     delta3: 7
   }.freeze
 
-  INVENTORY_SIZE = 10
-
   attr_reader :actions, :me, :opp, :meta
 
   def initialize(actions:, me:, opp:, meta: {turn: 1})
@@ -241,20 +239,9 @@ class GameTurn
     def i_can_cast?(spell)
       return false unless spell[:castable]
 
-      # can be negative if condenses to better
-      items_produced = deltas(spell).sum
-
-      # overfilling inventory detected!
-      return false if items_produced + me[:inv].sum > INVENTORY_SIZE
-
-      missing_for_casting = inventory_delta(me[:inv], deltas(spell).map(&:-@))
-
-      !missing_for_casting.sum.positive?
-    end
-
-    # takes in a spell or a potion and returns in-ventory-compatible array
-    def deltas(action)
-      [action[:delta0], action[:delta1], action[:delta2], action[:delta3]]
+      GameSimulator.the_instance.can_cast?(
+        operation: deltas(spell), from: me[:inv]
+      )[:can]
     end
 
     # Returns positions and counts that are missing
