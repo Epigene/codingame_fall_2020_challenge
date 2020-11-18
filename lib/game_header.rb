@@ -14,6 +14,12 @@ def deltas(action)
   [action[:delta0], action[:delta1], action[:delta2], action[:delta3]]
 end
 
+class Object
+  def deep_dup
+    Marshal.load(Marshal.dump(self))
+  end
+end
+
 class Array
   # monkeypatches Array to allow adding inventories
   def add(other)

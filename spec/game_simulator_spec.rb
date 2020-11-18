@@ -34,7 +34,7 @@ RSpec.describe GameSimulator do
       end
 
       let(:outcome) do
-        position.dup.tap do |p|
+        position.deep_dup.tap do |p|
           p[:actions] = {
             24 => {:type=>"LEARN", :delta0=>0, :delta1=>3, :delta2=>0, :delta3=>-1, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
             0 => {:type=>"LEARN", :delta0=>-3, :delta1=>0, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
@@ -53,6 +53,7 @@ RSpec.describe GameSimulator do
           }
 
           p[:meta][:turn] = 2
+          p[:meta][:previous_move] = move
         end
       end
 
@@ -88,7 +89,7 @@ RSpec.describe GameSimulator do
       end
 
       let(:outcome) do
-        position.dup.tap do |p|
+        position.deep_dup.tap do |p|
           p[:actions] = {
             24 => {:type=>"LEARN", :delta0=>0, :delta1=>3, :delta2=>0, :delta3=>-1, :price=>0, :tome_index=>0, :tax_count=>1, :castable=>false, :repeatable=>true},
             18 => {:type=>"LEARN", :delta0=>-1, :delta1=>-1, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
@@ -107,6 +108,7 @@ RSpec.describe GameSimulator do
           }
 
           p[:meta][:turn] = 3
+          p[:meta][:previous_move] = move
           p[:me] = {:inv=>[1, 0, 0, 0], :score=>0}
         end
       end
@@ -136,7 +138,7 @@ RSpec.describe GameSimulator do
       end
 
       let(:outcome) do
-        position.dup.tap do |p|
+        position.deep_dup.tap do |p|
           p[:actions] = {
             0 => {:type=>"LEARN", :delta0=>-3, :delta1=>0, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
             78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
@@ -148,6 +150,7 @@ RSpec.describe GameSimulator do
           }
 
           p[:meta][:turn] = 3
+          p[:meta][:previous_move] = move
           p[:me] = {:inv=>[3, 0, 0, 0], :score=>0}
         end
       end
@@ -180,7 +183,7 @@ RSpec.describe GameSimulator do
             79 => {:type=>"CAST", :delta0=>-2, :delta1=>2, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
           },
           me: {:inv=>[2, 0, 0, 0], :score=>0},
-          meta: {turn: 3}
+          meta: {turn: 3, previous_move: "REST"}
         )
       end
     end
@@ -208,7 +211,7 @@ RSpec.describe GameSimulator do
             85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
           me: {:inv=>[2, 1, 0, 0], :score=>0},
-          meta: {:turn=>6}
+          meta: {:turn=>6, previous_move: move}
         )
       end
     end
@@ -236,7 +239,7 @@ RSpec.describe GameSimulator do
             85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
           me: {:inv=>[0, 1, 0, 0], :score=>0},
-          meta: {:turn=>5}
+          meta: {:turn=>5, previous_move: move}
 
         )
       end
@@ -267,7 +270,7 @@ RSpec.describe GameSimulator do
             85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
           me: {:inv=>[3, 4, 3, 0], :score=>0},
-          meta: {:turn=>5}
+          meta: {:turn=>5, previous_move: move}
         )
       end
     end
@@ -297,7 +300,7 @@ RSpec.describe GameSimulator do
             85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
           me: {:inv=>[5, 4, 1, 0], :score=>0},
-          meta: {:turn=>5}
+          meta: {:turn=>5, previous_move: move}
         )
       end
     end
@@ -451,19 +454,342 @@ RSpec.describe GameSimulator do
     end
   end
 
-  describe "#moves_towards(inv:, start:, just_rested: false)" do
+  describe "#moves_towards(target:, start:)" do
     subject(:moves_towards) { instance.moves_towards(**options) }
 
-    context "when an error occurs when traversing" do
-      it "immediately returns the moves that lead to error" do
-        is_expected.to eq(1)
+    let(:options) { {target: target, start: start, depth: 0} }
+
+    context "when we're already at the target, and should seek to brew or something" do
+      let(:target) { [2, 1, 0, 0] }
+
+      let(:start) do
+        {
+          actions: {
+            78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+          },
+          me: {:inv=>[3, 1, 0, 0], :score=>0},
+          meta: {:turn=>1, previous_move: ""}
+        }
+      end
+
+      it { is_expected.to eq([]) }
+    end
+
+    context "when position is very simple, just make Aquas one time" do
+      let(:target) { [2, 0, 0, 0] }
+
+      let(:start) do
+        {
+          actions: {
+            78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+          },
+          me: {:inv=>[0, 0, 0, 0], :score=>0},
+          meta: {:turn=>1, previous_move: ""}
+        }
+      end
+
+      it do
+        is_expected.to eq(["CAST 78"])
       end
     end
 
-    context "when " do
-      it "knows patience and saves Aquas to do a single powerful transmute" do
-        is_expected.to eq(1)
+    context "when position has two competing Aqua producing spells" do
+      let(:target) { [2, 0, 0, 0] }
+
+      let(:start) do
+        {
+          actions: {
+            78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            86 => {:type=>"CAST", :delta0=>3, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          },
+          me: {:inv=>[0, 0, 0, 0], :score=>0},
+          meta: {:turn=>1, previous_move: ""}
+        }
       end
+
+      it "returns the move that reaches target and produces most bonus" do
+        is_expected.to eq(["CAST 86"])
+      end
+    end
+
+    context "when position is very simple, just make Aquas and rest several times" do
+      let(:target) { [6, 0, 0, 0] }
+
+      let(:start) do
+        {
+          actions: {
+            78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+          },
+          me: {:inv=>[0, 0, 0, 0], :score=>0},
+          meta: {:turn=>1, previous_move: ""}
+        }
+      end
+
+      it do
+        is_expected.to eq(["CAST 78", "REST", "CAST 78", "REST", "CAST 78"])
+      end
+    end
+
+    context "when position is still simple, just use imba spell and rest combo" do
+      let(:target) { [0, 0, 0, 4] }
+
+      let(:start) do
+        {
+          actions: {
+            78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            86 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
+          },
+          me: {:inv=>[0, 0, 0, 1], :score=>0},
+          meta: {:turn=>3, previous_move: "CAST 86"}
+        }
+      end
+
+      it do
+        is_expected.to eq(["REST", "CAST 86", "REST", "CAST 86", "REST", "CAST 86"])
+      end
+    end
+
+    context "when position is such that saving up and doing a multicast is the best move" do
+      let(:target) { [0, 0, 0, 4] }
+
+      let(:start) do
+        {
+          actions: {
+            78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            81 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            90 => {:type=>"CAST", :delta0=>-3, :delta1=>0, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          },
+          me: {:inv=>[2, 0, 0, 0], :score=>0},
+          meta: {:turn=>3, previous_move: "REST"}
+        }
+      end
+
+      it "knows patience and saves Aquas to do a single powerful transmute" do
+        is_expected.to eq(["CAST 78", "REST", "CAST 78", "CAST 90 2", "REST", "CAST 78"])
+      end
+    end
+
+    context "when an expected error occurs when traversing" do
+      let(:target) { [0, 0, 0, 4] }
+
+      let(:start) do
+        {
+          actions: {
+            78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            81 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            90 => {:type=>"CAST", :delta0=>-3, :delta1=>0, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          },
+          me: {:inv=>[2, 0, 0, 0], :score=>0},
+          meta: {:turn=>3, previous_move: "REST"}
+        }
+      end
+
+      before do
+        allow(instance).to receive(:result).and_call_original
+
+        allow(instance).to(
+          receive(:result).
+          with(position: anything, move: "CAST 90 2")
+        ).and_raise(SimulatorError.new("mehh"))
+      end
+
+      it "ignores the error, merely skips that move branch" do
+        is_expected.to include("CAST 79")
+      end
+    end
+
+    context "when an unexpected error occurs when traversing" do
+      let(:target) { [0, 0, 0, 4] }
+
+      let(:start) do
+        {
+          actions: {
+            78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            81 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            90 => {:type=>"CAST", :delta0=>-3, :delta1=>0, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          },
+          me: {:inv=>[2, 0, 0, 0], :score=>0},
+          meta: {:turn=>3, previous_move: "REST"}
+        }
+      end
+
+      before do
+        allow(instance).to receive(:result).and_call_original
+
+        allow(instance).to(
+          receive(:result).
+          with(position: anything, move: "CAST 90 2")
+        ).and_raise("whoa there")
+      end
+
+      it "raises a descriptive error" do
+        expect{ subject }.to raise_error(
+          RuntimeError, %r'Path \["CAST 78", "REST", "CAST 78", "CAST 90 2"\] leads to err: \'whoa there\' in'
+        )
+      end
+    end
+  end
+
+  describe "#distance_from_target(target:, inv:)" do
+    subject(:distance_from_target) { instance.distance_from_target(**options) }
+
+    let(:options) { {target: target, inv: inv} }
+
+    context "when precisely at target" do
+      let(:target) { [1, 0, 0, 0] }
+      let(:inv) { target }
+
+      it { is_expected.to eq(distance: 0, bonus: 0) }
+    end
+
+    context "when slightly over target" do
+      let(:target) { [1, 0, 0, 0] }
+      let(:inv) { [2, 1, 0, 0] }
+
+      it { is_expected.to eq(distance: 0, bonus: 3) }
+    end
+
+    context "when under target" do
+      let(:target) { [1, 0, 1, 0] }
+      let(:inv) { [0, 1, 0, 0] }
+
+      it { is_expected.to eq(distance: 4, bonus: 2) }
+    end
+  end
+
+  describe "#moves_from(position:)" do
+    subject(:moves_from) { instance.moves_from(position: position) }
+
+    context "when all categories of actions are possible" do
+      # - learning
+      # - casting
+      # - multicasting
+      # - rest
+      let(:position) do
+        {
+          actions: {
+            24 => {:type=>"LEARN", :delta0=>0, :delta1=>3, :delta2=>0, :delta3=>-1, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
+            78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            86 => {:type=>"CAST", :delta0=>0, :delta1=>-2, :delta2=>2, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+            87 => {:type=>"CAST", :delta0=>0, :delta1=>2, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>true}
+          },
+          me: {:inv=>[0, 4, 0, 0], :score=>0},
+          meta: {:turn=>1, previous_move: ""}
+        }
+      end
+
+      it "returns an array of moves to try" do
+        is_expected.to contain_exactly(
+          "REST", "LEARN 24", "CAST 78", "CAST 86", "CAST 86 2"
+        )
+      end
+    end
+
+    context "when just rested" do
+      let(:position) do
+        {
+          actions: {
+            24 => {:type=>"LEARN", :delta0=>0, :delta1=>3, :delta2=>0, :delta3=>-1, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
+            78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          },
+          me: {:inv=>[0, 4, 0, 0], :score=>0},
+          meta: {:turn=>1, previous_move: "REST"}
+        }
+      end
+
+      it "does not include resting among moves to try" do
+        is_expected.to contain_exactly("LEARN 24", "CAST 78")
+      end
+    end
+  end
+
+  describe "#possible_cast_times(spell:, inv:)" do
+    subject(:possible_cast_times) do
+      instance.possible_cast_times(spell: spell, inv: inv)
+    end
+
+    context "when spell is exhausted" do
+      let(:spell) do
+        {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false}
+      end
+
+      let(:inv) { [2,0,0,0] }
+
+      it { is_expected.to eq(0) }
+    end
+
+    context "when spell is castable, but lacking inv" do
+      let(:spell) do
+        {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+      end
+
+      let(:inv) { [0,0,0,0] }
+
+      it { is_expected.to eq(0) }
+    end
+
+    context "when a non-repeatable spell can be cast once" do
+      let(:spell) do
+        {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+      end
+
+      let(:inv) { [1,0,0,0] }
+
+      it { is_expected.to eq(1) }
+    end
+
+    context "when a repeatable spell can be cast once" do
+      let(:spell) do
+        {:type=>"CAST", :delta0=>-2, :delta1=>2, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true}
+      end
+
+      let(:inv) { [3,0,0,0] }
+
+      it { is_expected.to eq(1) }
+    end
+
+    context "when a repeatable spell can be cast twice" do
+      let(:spell) do
+        {:type=>"CAST", :delta0=>-2, :delta1=>2, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true}
+      end
+
+      let(:inv) { [5,0,0,0] }
+
+      it { is_expected.to eq(2) }
+    end
+
+    context "when a repeatable spell can be cast five times, the max" do
+      let(:spell) do
+        {:type=>"CAST", :delta0=>-2, :delta1=>2, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true}
+      end
+
+      let(:inv) { [10,0,0,0] }
+      it { is_expected.to eq(5) }
     end
   end
 

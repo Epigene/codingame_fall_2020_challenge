@@ -62,9 +62,14 @@ class GameTurn
   #    can (or could) make in some most efficient setup
   #
   # For now going for 1. always leftmost potion!
-  #def move
-  #  GameSimulator
-  #end
+  def move
+    binding.pry
+    # leftmost_potion =
+
+    # potions.find { |id, potion| i_can_brew?(potion) }
+
+    GameSimulator.the_instance
+  end
 
   private
 

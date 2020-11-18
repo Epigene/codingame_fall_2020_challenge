@@ -2,6 +2,7 @@ class GameSimulator
   # This class provides methods to advance game state into the future to a certain degree
   # opponent moves can naturally not be simulated, and impossible to know what new spells
   # and potions will appear later.
+  class ::SimulatorError < RuntimeError; end
 
   PURE_GIVER_IDS = [2, 3, 4, 12, 13, 14, 15, 16].to_set.freeze
   GOOD_SPELL_IDS = [18, 17, 38, 39, 40, 30, 34].to_set.freeze
@@ -157,9 +158,11 @@ class GameSimulator
 
     case verb
     when "REST"
-      raise("do not rest twice in a row!") if position.dig(:meta, :previous_move).to_s.start_with?("REST")
+      if position.dig(:meta, :previous_move).to_s.start_with?("REST")
+        raise SimulatorError.new("do not rest twice in a row!")
+      end
 
-      p = position.dup
+      p = position.deep_dup
 
       p[:actions].transform_values! do |v|
         if v[:type] == "CAST"
@@ -171,6 +174,7 @@ class GameSimulator
       end
 
       p[:meta][:turn] += 1
+      p[:meta][:previous_move] = move
 
       p
     when "LEARN"
@@ -179,7 +183,7 @@ class GameSimulator
       learn_index = learned_spell[:tome_index]
 
       if learn_index > position[:me][:inv][0]
-        raise("insufficient aqua for learning tax!")
+        raise SimulatorError.new("insufficient aqua for learning tax!")
       end
 
       # needed to know what will be the added spell's id
@@ -195,7 +199,7 @@ class GameSimulator
       # 1. learning
       #   removes learned spell from list
       #   adds a spell with correct id to own spells
-      p = position.dup
+      p = position.deep_dup
       p[:actions].reject!{ |k, v| k == id }
 
       p[:actions].transform_values! do |v|
@@ -216,6 +220,7 @@ class GameSimulator
 
       p[:actions][max_cast_id.next] = LEARNED_SPELL_DATA[id]
       p[:meta][:turn] += 1
+      p[:meta][:previous_move] = move
       p[:me][:inv][0] -= learn_index
       p[:me][:inv][0] += learned_spell[:tax_count] if learned_spell[:tax_count].positive?
 
@@ -224,7 +229,7 @@ class GameSimulator
       id = portions[1].to_i
       cast_spell = position[:actions][id]
 
-      raise("spell exhausted!") unless cast_spell[:castable]
+      raise SimulatorError.new("spell exhausted!") unless cast_spell[:castable]
 
       cast_times =
         if portions.size > 2
@@ -234,7 +239,7 @@ class GameSimulator
         end
 
       if cast_times > 1 && !cast_spell[:repeatable]
-        raise("spell can't multicast!")
+        raise SimulatorError.new("spell can't multicast!")
       end
 
       operation =
@@ -248,14 +253,14 @@ class GameSimulator
 
       if !casting_check[:can]
         if casting_check[:detail] == :insufficient_ingredients
-          raise("insufficient ingredients for casting!") if cast_times == 1
-          raise("insufficient ingredients for multicasting!")
+          raise SimulatorError.new("insufficient ingredients for casting!") if cast_times == 1
+          raise SimulatorError.new("insufficient ingredients for multicasting!")
         else
-          raise("casting overfills inventory!")
+          raise SimulatorError.new("casting overfills inventory!")
         end
       end
 
-      p = position.dup
+      p = position.deep_dup
 
       cast_times.times do
         p[:me][:inv] = p[:me][:inv].add(deltas(cast_spell))
@@ -267,6 +272,7 @@ class GameSimulator
       #   changes my inv accordingly
       #   changes spell castability accordingly
       p[:meta][:turn] += 1
+      p[:meta][:previous_move] = move
       p
     else
       {error: "verb '#{ verb }' not supported"}
@@ -275,13 +281,181 @@ class GameSimulator
 
   # This is the brute-forcing component.
   # Uses heuristics to try most promising paths first
+  # @target [Array] # target inventory to solve for
+  # @start [Hash] # the starting position
+  #
   # @return [Array<String>]
-  def moves_towards(inv:, start:, just_rested: false)
-    # 1. identify legal and useful moves.
-    #      Remember that several repeats of a multicastable spell are different possible actions
-    #      Never rest twice in a row
-    # 2. loop over OK moves, get results
-    # 3. Loop over results with 1. again. Can use heuristics to try promising outcomes first
+  def moves_towards(target:, start:, path: [], max_depth: 6, depth: 0)
+    if depth == 0
+      distance_from_target = distance_from_target(
+        target: target, inv: start[:me][:inv]
+      )
+
+      return [] if distance_from_target[:distance].zero?
+    end
+
+    positions = {
+      path => start
+    }
+
+    (1..max_depth).to_a.each do |generation|
+      debug("Starting move and outcome crunch for generation #{ generation }")
+      debug("There are #{ positions.keys.size } positions to check moves for")
+
+      moves_to_try = []
+
+      positions.each_pair do |path, position|
+        moves = moves_from(position: position)
+        debug("There are #{ moves.size } moves that can be made after #{ path }")
+        #=> ["REST", "CAST 79"]
+
+        moves.each do |move|
+          moves_to_try << [move, path]
+        end
+      end
+
+      data =
+        moves_to_try.each_with_object({}) do |(move, path), mem|
+          # 2. loop over OK moves, get results
+          outcome =
+            begin
+              result(position: positions[path], move: move)
+            rescue SimulatorError => e
+              next
+            rescue => e
+              raise("Path #{ path << move } leads to err: '#{ e.message }' in #{ e.backtrace.first }")
+            end
+
+          # 3. evaluate the outcome
+          distance_from_target = distance_from_target(
+            target: target, inv: outcome[:me][:inv]
+          )
+
+          key = [*path, move]
+
+          mem[key] = {
+            outcome: outcome,
+            distance_from_target: distance_from_target
+          }
+        end
+
+      sorted =
+        data.sort_by do |(move, path), specifics|
+          [
+            specifics[:distance_from_target][:distance],
+            -specifics[:distance_from_target][:bonus]
+          ]
+        end
+      #=> [[move, data], ["CATS 78", {outcome: {actions: {...}}}]]
+
+      prime_candidate = sorted.first
+      prime_specifics = prime_candidate[1]
+
+      # check best move, if with it we're there, done!
+      return_prime_candidate =
+        if prime_specifics[:distance_from_target][:distance] == 0
+          :target_reached
+        elsif generation == max_depth
+          :max_depth_reached
+        else
+          false
+        end
+
+      if return_prime_candidate
+        debug("Returning prime candidate because #{ return_prime_candidate }")
+        return prime_candidate[0]
+      end
+
+      # no move got us there, lets go deeper
+      # 3. Loop over results with 1. again.
+      # Can use heuristics:
+      # - try promising outcomes first (DONE)
+      # - drop exceptionally poor variants that have no hope of catching up
+      positions = {}
+
+      sorted.each do |path, specifics|
+        positions[path] = specifics[:outcome]
+      end
+    end
+  end
+
+  # This is the evaluator method.
+  # every ingredient that is missing from target is taken to be a distance of [1,2,3,4] respectively
+  # ingredients that are more do not reduce distance, but are counted as a bonus
+  #
+  # @return [Hash]
+  def distance_from_target(target:, inv:)
+    @distance_cache ||= {}
+    key = [target, inv]
+
+    if @distance_cache.key?(key)
+      @distance_cache[key]
+    else
+      sum = target.add(inv.map{|v| -v})
+      distance = sum.map.with_index{ |v, i| next unless v.positive?; v*i.next }.compact.sum
+      bonus = sum.map.with_index{ |v, i| next unless v.negative?; -v*i.next }.compact.sum
+
+      @distance_cache[key] = {distance: distance, bonus: bonus}
+    end
+  end
+
+  # Does not care about legality much, since simulator will check when deciding outcome.
+  # @return [Array<String>]
+  def moves_from(position:)
+    moves = []
+
+    position[:actions].each do |id, action|
+      if action[:type] == "LEARN"
+        moves << "LEARN #{ id }"
+      elsif action[:type] == "CAST"
+        times = possible_cast_times(spell: action, inv: position[:me][:inv])
+
+        next if times == 0
+
+        times.times do |i|
+          if i == 0
+            moves << "CAST #{ id }"
+          else
+            moves << "CAST #{ id } #{ i.next }"
+          end
+        end
+      end
+    end
+
+    moves << "REST" unless position[:meta][:previous_move].to_s.start_with?("REST")
+
+    moves
+  end
+
+  # Returns ways can this spell can be cast in. 0, 1 or n(multicast) variants possible.
+  # @return [Integer] # number of times the spell can be cast from this inventory
+  def possible_cast_times(spell:, inv:)
+    @cast_time_cache ||= {}
+    key = [spell, inv]
+
+    if @cast_time_cache.key?(key)
+      @cast_time_cache[key]
+    else
+      return @cast_time_cache[key] = 0 unless spell[:castable]
+
+      deltas = deltas(spell)
+
+      can_cast_once = can_cast?(operation: deltas, from: inv)
+
+      return @cast_time_cache[key] = 0 unless can_cast_once[:can]
+
+      # here we know that can be cast at least once
+      return @cast_time_cache[key] = 1 unless spell[:repeatable]
+
+      # here we know the spell can be repeated
+      (2..5).to_a.each do |i|
+        next if can_cast?(operation: deltas.map{ |v| v * i}, from: inv)[:can]
+
+        return @cast_time_cache[key] = i-1
+      end
+
+      return @cast_time_cache[key] = 5
+    end
   end
 
   # Takes into account the two constraints
