@@ -299,6 +299,7 @@ class GameSimulator
   end
 
   MY_MOVES = ["CAST", "LEARN"].to_set.freeze
+  DISTANCE_CUTOFF_DELTA = 7
 
   # This is the brute-forcing component.
   # Uses heuristics to try most promising paths first
@@ -307,33 +308,46 @@ class GameSimulator
   #
   # @return [Array<String>]
   def moves_towards(target:, start:, path: [], max_depth: 6, depth: 0)
-    if depth == 0
-      distance_from_target = distance_from_target(
-        target: target, inv: start[:me][0..3]
-      )
+    initial_distance_from_target = distance_from_target(
+      target: target, inv: start[:me][0..3]
+    )
 
-      return [] if distance_from_target[:distance].zero?
+    return [] if initial_distance_from_target[:distance].zero?
 
-      # This cleans position passed on in hopes of saving on dup time, works well
-      start[:actions] = start[:actions].select do |k, v|
-        MY_MOVES.include?(action_type(v))
-      end.to_h
-    end
+    # This cleans position passed on in hopes of saving on dup time, works well
+    start[:actions] = start[:actions].select do |k, v|
+      MY_MOVES.include?(action_type(v))
+    end.to_h
+
+    max_allowed_learning_moves = max_depth / 2 # in case of odd max debt, learn less
 
     positions = {
       path => start
     }
+
+    closest_so_far = nil
 
     (1..max_depth).to_a.each do |generation|
       debug("Starting move and outcome crunch for generation #{ generation }")
       debug("There are #{ positions.keys.size } positions to check moves for")
 
       final_iteration = generation == max_depth
+      penultimate_iteration = generation == max_depth - 1
+
+      past_halfway = generation >= (max_depth.next / 2)
 
       moves_to_try = []
 
       positions.each_pair do |path, position|
-        moves = moves_from(position: position, skip_resting: final_iteration, skip_learning: final_iteration)
+        already_studied_max_times =
+          past_halfway &&
+          path.count { |v| v.start_with?("LEARN") } >= max_allowed_learning_moves
+
+        moves = moves_from(
+          position: position,
+          skip_resting: final_iteration,
+          skip_learning: final_iteration || already_studied_max_times
+        )
         # debug("There are #{ moves.size } moves that can be made after #{ path }")
         #=> ["REST", "CAST 79"]
 
@@ -344,41 +358,46 @@ class GameSimulator
 
       debug("There turned out to be #{ moves_to_try.size } moves to check")
 
-      data =
-        moves_to_try.each_with_object({}) do |(move, path), mem|
-          # 2. loop over OK moves, get results
-          outcome =
-            begin
-              result(position: positions[path], move: move)
-            rescue SimulatorError => e
-              next
-            rescue => e
-              raise("Path #{ path << move } leads to err: '#{ e.message }' in #{ e.backtrace.first }")
-            end
+      data = []
 
-          # 3. evaluate the outcome
-          distance_from_target = distance_from_target(
-            target: target, inv: outcome[:me][0..3]
-          )
+      moves_to_try.each do |move, path|
+        # 2. loop over OK moves, get results
+        outcome =
+          begin
+            result(position: positions[path], move: move)
+          rescue SimulatorError => _e
+            next
+          rescue => e
+            raise("Path #{ path << move } leads to err: '#{ e.message }' in #{ e.backtrace.first }")
+          end
 
-          key = [*path, move]
+        # 3. evaluate the outcome
+        distance_from_target = distance_from_target(
+          target: target, inv: outcome[:me][0..3]
+        )
 
-          mem[key] = {
+        data << [
+          [*path, move],
+          {
             outcome: outcome,
             distance_from_target: distance_from_target
           }
-        end
+        ]
+      end
 
-      sorted =
-        data.sort_by do |(move, path), specifics|
+      # takes very little time
+      # sort_time = Benchmark.realtime do
+        data.sort_by! do |(_move, path), specifics|
           [
             specifics[:distance_from_target][:distance],
             -specifics[:distance_from_target][:bonus]
           ]
         end
-      #=> [[move, data], ["CATS 78", {outcome: {actions: {...}}}]]
+        #=> [[move, data], ["CATS 78", {outcome: {actions: {...}}}]]
+      # end
+      # debug("Sorting gen #{ generation } took #{ sort_time }")
 
-      prime_candidate = sorted.first
+      prime_candidate = data.first
       prime_specifics = prime_candidate[1]
 
       # check best move, if with it we're there, done!
@@ -396,15 +415,56 @@ class GameSimulator
         return prime_candidate[0]
       end
 
-      # no move got us there, lets go deeper
-      # 3. Loop over results with 1. again.
-      # Can use heuristics:
-      # - try promising outcomes first (DONE)
-      # - drop exceptionally poor variants that have no hope of catching up
+      # no move got us there, lets go deeper.
+      # here's we can inject heuristics of which results to keep and drop for next gen
+      # 1. drop outcomes that are too far behind the best variant. Since some spells give 4 in one move,
+      #     probably safe to use 8+
+      huristic_run = Benchmark.realtime do
+        # 1. dropping hopeless variations
+        lowest_distance = prime_specifics[:distance_from_target][:distance]
+
+        no_longer_tolerable_distance =
+          # the further in we are, the less forgiving of bad variations we are
+          if penultimate_iteration
+            lowest_distance + DISTANCE_CUTOFF_DELTA - 1
+          else
+            lowest_distance + DISTANCE_CUTOFF_DELTA
+          end
+
+        cutoff_index = nil
+
+        data.each.with_index do |(new_path, specifics), i|
+          if specifics[:distance_from_target][:distance] < no_longer_tolerable_distance
+            next
+          end
+
+          # detects no progress towards target past the halfway mark, pure idling here.
+          if past_halfway
+            if specifics[:distance_from_target][:distance] <= initial_distance_from_target[:distance]
+              if specifics[:distance_from_target][:bonus] <= initial_distance_from_target[:bonus]
+                cutoff_index = i
+                break
+              end
+            end
+          end
+
+          cutoff_index = i
+          break
+        end
+
+        if cutoff_index
+          debug("Cutoff at index #{ cutoff_index } from #{ data.size }")
+          data = data[0..(cutoff_index-1)]
+        else
+          debug("Nothing to cut off, closest variant has #{ prime_specifics[:distance_from_target] }, and furthest has #{ data.last[1][:distance_from_target] }")
+        end
+      end
+      debug("Huristic filter run took #{ huristic_run }")
+
       positions = {}
 
-      sorted.each do |path, specifics|
-        positions[path] = specifics[:outcome]
+      data.each do |variation_path, specifics|
+        positions[variation_path] = specifics[:outcome]
       end
     end
   end
