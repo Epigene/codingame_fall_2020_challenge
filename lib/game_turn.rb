@@ -25,6 +25,7 @@ class GameTurn
     debug("meta: #{ meta }")
   end
 
+  # V1, a bunch of else-ifs
   # The only public API, returns the preferable move string
   def move
     brewable_potion = potions.find { |id, potion| i_can_brew?(potion) }
@@ -62,16 +63,47 @@ class GameTurn
   #    can (or could) make in some most efficient setup
   #
   # For now going for 1. always leftmost potion!
-  def move
-    binding.pry
-    # leftmost_potion =
+  def move_v2
+    move = nil
+    # realtime
+    elapsed = Benchmark.realtime do
+      leftmost_potion_with_bonus = potions.find{ |id, potion| potion[:tome_index] == 3 }
+      #[id, potion]
 
-    # potions.find { |id, potion| i_can_brew?(potion) }
+      potion_to_work_towards =
+        if leftmost_potion_with_bonus
+          leftmost_potion_with_bonus
+        else
+          [simplest_potion_id, potions[simplest_potion_id]]
+        end
 
-    GameSimulator.the_instance
+      the_moves = GameSimulator.the_instance.moves_towards(
+        start: position, target: deltas(potion_to_work_towards[1]).map(&:-@)
+      )
+
+      move =
+        if the_moves == []
+          # oh, already there, let's brew
+          "BREW #{ potion_to_work_towards[0] }"
+        else
+          "#{ the_moves.first } let's brew #{ potion_to_work_towards[0] } via [#{ the_moves.join(", ") }]"
+        end
+    end
+
+    debug("move_v2 took #{ (elapsed * 1000.0).round }ms")
+
+    move
   end
 
   private
+
+    def position
+      @position ||= {
+        actions: actions,
+        me: me,
+        meta: meta
+      }
+    end
 
     # Just potion actions (have price), sorted descending by price
     #
@@ -98,7 +130,7 @@ class GameTurn
     def opp_spells
     end
 
-    # @potion [Hash] # {:delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>0}
+    # @potion [Hash] # {:delta0=>0, delta1:-2, delta2:0, delta3:0}
     # @return [Integer] # the relative cost to make a potion from empty inv
     def cost_in_moves(potion)
       costs = potion.slice(*COSTS.keys).map{ |k, v| v * COSTS[k] }
@@ -239,7 +271,7 @@ class GameTurn
       "REST I'm beat while working towards #{ target_inventory }"
     end
 
-    # @spell [Hash] # {:delta0=>0, :delta1=>-1, :delta2=>0, :delta3=>1, :castable=>true}
+    # @spell [Hash] # {:delta0=>0, delta1:-1, delta2:0, delta3:1, :castable=>true}
     # @return [Boolean]
     def i_can_cast?(spell)
       return false unless spell[:castable]
@@ -263,7 +295,7 @@ class GameTurn
       end
     end
 
-    # @potion [Hash] # {:delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>0}
+    # @potion [Hash] # {:delta0=>0, delta1:-2, delta2:0, delta3:0}
     # @return [Boolean]
     def i_can_brew?(potion)
       problems =

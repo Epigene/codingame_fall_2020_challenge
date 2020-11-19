@@ -9,17 +9,18 @@ RSpec.describe GameTurn do
   let(:opp) { {} }
   let(:meta) { {} }
 
+  # v1
   describe "#move" do
     subject(:move) { instance.move }
 
     context "when initialized with reference state 1" do
       let(:actions) do
         {
-          44 => {type: "BREW", :delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>0, :price=>8},
-          42 => {type: "BREW", :delta0=>-1, :delta1=>-1, :delta2=>0, :delta3=>0, :price=>6},
-          61 => {type: "BREW", :delta0=>0, :delta1=>0, :delta2=>0, :delta3=>-2, :price=>16},
-          50 => {type: "BREW", :delta0=>-1, :delta1=>0, :delta2=>0, :delta3=>-1, :price=>10},
-          54 => {type: "BREW", :delta0=>0, :delta1=>-1, :delta2=>0, :delta3=>-1, :price=>12}
+          44 => {type: "BREW", delta0: 0, delta1:-2, delta2:0, delta3:0, :price=>8},
+          42 => {type: "BREW", delta0: -1, delta1:-1, delta2:0, delta3:0, :price=>6},
+          61 => {type: "BREW", delta0: 0, delta1:0, delta2:0, delta3:-2, :price=>16},
+          50 => {type: "BREW", delta0: -1, delta1:0, delta2:0, delta3:-1, :price=>10},
+          54 => {type: "BREW", delta0: 0, delta1:-1, delta2:0, delta3:-1, :price=>12}
         }
       end
 
@@ -46,9 +47,9 @@ RSpec.describe GameTurn do
 
       let(:actions) do
         {
-          11 => {:type=>"LEARN", :delta0=>2, :delta1=>2, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-          10 => {:type=>"LEARN", :delta0=>4, :delta1=>-1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
-          44 => {type: "BREW", :delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>0, :price=>8},
+          11 => {type:"LEARN", delta0: 2, delta1:2, delta2:-1, delta3:0, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
+          10 => {type:"LEARN", delta0: 4, delta1:-1, delta2:0, delta3:0, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
+          44 => {type: "BREW", delta0: 0, delta1:-2, delta2:0, delta3:0, :price=>8},
         }
       end
 
@@ -65,8 +66,8 @@ RSpec.describe GameTurn do
 
       let(:actions) do
         {
-          11 => {:type=>"LEARN", :delta0=>0, :delta1=>-2, :delta2=>2, :delta3=>0, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-          10 => {:type=>"LEARN", :delta0=>2, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true}
+          11 => {type:"LEARN", delta0: 0, delta1:-2, delta2:2, delta3:0, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
+          10 => {type:"LEARN", delta0: 2, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true}
         }
       end
 
@@ -81,8 +82,8 @@ RSpec.describe GameTurn do
 
       let(:actions) do
         {
-          11 => {:type=>"LEARN", :delta0=>0, :delta1=>-2, :delta2=>2, :delta3=>0, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-          10 => {:type=>"LEARN", :delta0=>3, :delta1=>-2, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true}
+          11 => {type:"LEARN", delta0: 0, delta1:-2, delta2:2, delta3:0, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
+          10 => {type:"LEARN", delta0: 3, delta1:-2, delta2:0, delta3:0, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true}
         }
       end
 
@@ -94,12 +95,12 @@ RSpec.describe GameTurn do
     context "when there's a simple potion and we should work towards it" do
       let(:actions) do
         {
-          76 => {:type=>"BREW", :delta0=>-1, :delta1=>-1, :delta2=>-3, :delta3=>-1, :price=>18, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
-          70 => {:type=>"BREW", :delta0=>-1, :delta1=>-1, :delta2=>0, :delta3=>-1, :price=>15, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
-          1 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          2 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          3 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          4 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+          76 => {type:"BREW", delta0: -1, delta1:-1, delta2:-3, delta3:-1, :price=>18, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          70 => {type:"BREW", delta0: -1, delta1:-1, delta2:0, delta3:-1, :price=>15, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          1 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          2 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          3 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          4 => {type:"CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
         }
       end
 
@@ -117,15 +118,15 @@ RSpec.describe GameTurn do
 
       let(:actions) do
         {
-          53 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-4, :delta3=>0, :price=>15, :tome_index=>3, :tax_count=>3, :castable=>false, :repeatable=>false},
-          58 => {:type=>"BREW", :delta0=>0, :delta1=>-3, :delta2=>0, :delta3=>-2, :price=>15, :tome_index=>1, :tax_count=>3, :castable=>false, :repeatable=>false},
-          70 => {:type=>"BREW", :delta0=>-2, :delta1=>-2, :delta2=>0, :delta3=>-2, :price=>15, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
-          67 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-1, :delta3=>-1, :price=>12, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
-          77 => {:type=>"BREW", :delta0=>-1, :delta1=>-1, :delta2=>-1, :delta3=>-3, :price=>20, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
-          78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
-          80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          81 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+          53 => {type:"BREW", delta0: 0, delta1:0, delta2:-4, delta3:0, :price=>15, :tome_index=>3, :tax_count=>3, :castable=>false, :repeatable=>false},
+          58 => {type:"BREW", delta0: 0, delta1:-3, delta2:0, delta3:-2, :price=>15, :tome_index=>1, :tax_count=>3, :castable=>false, :repeatable=>false},
+          70 => {type:"BREW", delta0: -2, delta1:-2, delta2:0, delta3:-2, :price=>15, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          67 => {type:"BREW", delta0: 0, delta1:-2, delta2:-1, delta3:-1, :price=>12, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          77 => {type:"BREW", delta0: -1, delta1:-1, delta2:-1, delta3:-3, :price=>20, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
+          80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          81 => {type:"CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
         }
       end
 
@@ -140,10 +141,10 @@ RSpec.describe GameTurn do
 
       let(:actions) do
         {
-          79 => {:type=>"CAST", :delta0=>4, :delta1=>1, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          2 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          3 => {:type=>"CAST", :delta0=>0, :delta1=>2, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          44 => {:type=>"BREW", :delta0=>0, :delta1=>-5, :delta2=>0, :delta3=>0, :price=>15, :tome_index=>-1, :tax_count=>0, :castable=>false, :repeatable=>false},
+          79 => {type:"CAST", delta0: 4, delta1:1, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          2 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          3 => {type:"CAST", delta0: 0, delta1:2, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          44 => {type:"BREW", delta0: 0, delta1:-5, delta2:0, delta3:0, :price=>15, :tome_index=>-1, :tax_count=>0, :castable=>false, :repeatable=>false},
         }
       end
 
@@ -157,19 +158,59 @@ RSpec.describe GameTurn do
     end
   end
 
+  describe "#move_v2" do
+    subject(:move) { instance.move_v2 }
+
+    before(:all) do
+      TestProf::StackProf.run
+    end
+
+    context "when the situation is such that the leftmost potion is easy to make" do
+      let(:actions) do
+        {
+          60 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-5, :delta3=>0, :price=>18, :tome_index=>3, :tax_count=>4, :castable=>false, :repeatable=>false},
+          68 => {:type=>"BREW", :delta0=>-1, :delta1=>0, :delta2=>-2, :delta3=>-1, :price=>13, :tome_index=>1, :tax_count=>4, :castable=>false, :repeatable=>false},
+          48 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-2, :delta3=>0, :price=>10, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          56 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-3, :delta3=>0, :price=>13, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          51 => {:type=>"BREW", :delta0=>-2, :delta1=>0, :delta2=>-3, :delta3=>0, :price=>11, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          36 => {:type=>"LEARN", :delta0=>0, :delta1=>-3, :delta2=>3, :delta3=>0, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
+          31 => {:type=>"LEARN", :delta0=>0, :delta1=>3, :delta2=>2, :delta3=>-2, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
+          34 => {:type=>"LEARN", :delta0=>-2, :delta1=>0, :delta2=>-1, :delta3=>2, :price=>0, :tome_index=>2, :tax_count=>0, :castable=>false, :repeatable=>true},
+          16 => {:type=>"LEARN", :delta0=>1, :delta1=>0, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>3, :tax_count=>0, :castable=>false, :repeatable=>false},
+          1 => {:type=>"LEARN", :delta0=>3, :delta1=>-1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>4, :tax_count=>0, :castable=>false, :repeatable=>true},
+          22 => {:type=>"LEARN", :delta0=>0, :delta1=>2, :delta2=>-2, :delta3=>1, :price=>0, :tome_index=>5, :tax_count=>0, :castable=>false, :repeatable=>true},
+          78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          81 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+        }
+      end
+
+      let(:me) { {:inv=>[3, 0, 0, 0], :score=>0} }
+      let(:meta) { {:turn=>1, previous_move: ""} }
+
+      it "returns the first step towards easy brewin of leftmost potion" do
+        is_expected.to eq(
+          "LEARN 16 let's brew 60 via [LEARN 16, CAST 86, REST, CAST 86, REST, CAST 86]"
+        )
+      end
+    end
+  end
+
   #== Privates ==
 
   describe "#cost_in_moves(potion)" do
     subject(:cost_in_moves) { instance.send(:cost_in_moves, potion) }
 
     context "when potion requires one of each resource" do
-      let(:potion) { {:delta0=>-1, :delta1=>-1, :delta2=>-1, :delta3=>-1, price: 9} }
+      let(:potion) { {delta0: -1, delta1:-1, delta2:-1, delta3:-1, price: 9} }
 
       it { is_expected.to eq(16) }
     end
 
     context "when potion requires two green and three orange" do
-      let(:potion) { {:delta0=>0, :delta1=>-2, :delta2=>-3, :delta3=>0} }
+      let(:potion) { {delta0: 0, delta1:-2, delta2:-3, delta3:0} }
 
       it { is_expected.to eq(21) }
     end
@@ -182,10 +223,10 @@ RSpec.describe GameTurn do
 
     let(:actions) do
       {
-        1 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :castable=>true, :repeatable=>false},
-        2 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :castable=>true, :repeatable=>false},
-        3 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :castable=>true, :repeatable=>false},
-        4 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :castable=>true, :repeatable=>false}
+        1 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, :castable=>true, :repeatable=>false},
+        2 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, :castable=>true, :repeatable=>false},
+        3 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, :castable=>true, :repeatable=>false},
+        4 => {type:"CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, :castable=>true, :repeatable=>false}
       }
     end
 
@@ -206,7 +247,7 @@ RSpec.describe GameTurn do
         let(:actions) do
           s = super()
           s[4][:castable] = false
-          s[5] = {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>0, :delta3=>1, :castable=>true, :repeatable=>false}
+          s[5] = {type:"CAST", delta0: 0, delta1:-1, delta2:0, delta3:1, :castable=>true, :repeatable=>false}
           s
         end
 
@@ -257,24 +298,24 @@ RSpec.describe GameTurn do
   describe "#i_can_cast?(spell)" do
     subject(:i_can_cast?) { instance.send(:i_can_cast?, spell) }
 
-    let(:spell) { {:delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :castable=>true} }
+    let(:spell) { {delta0: -1, delta1:1, delta2:0, delta3:0, :castable=>true} }
 
     context "when the spell would overfill inventory" do
-      let(:spell) { {:delta0=>1, :delta1=>0, :delta2=>0, :delta3=>0, :castable=>true} }
+      let(:spell) { {delta0: 1, delta1:0, delta2:0, delta3:0, :castable=>true} }
       let(:me) { {inv: [4, 3, 2, 1]} }
 
       it { is_expected.to be(false) }
     end
 
     context "when the spell transmutes and would overfill inventory" do
-      let(:spell) { {:delta0=>2, :delta1=>2, :delta2=>-1, :delta3=>0, :castable=>true} }
+      let(:spell) { {delta0: 2, delta1:2, delta2:-1, delta3:0, :castable=>true} }
       let(:me) { {inv: [1, 1, 1, 5]} }
 
       it { is_expected.to be(false) }
     end
 
     context "when the spell requires no ingredients" do
-      let(:spell) { {:delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :castable=>true} }
+      let(:spell) { {delta0: 2, delta1:0, delta2:0, delta3:0, :castable=>true} }
       let(:me) { {inv: [0, 0, 0, 0]} }
 
       it { is_expected.to be(true) }
@@ -287,7 +328,7 @@ RSpec.describe GameTurn do
     end
 
     context "when I have complex ingredients to cast" do
-      let(:spell) { {:delta0=>-1, :delta1=>-2, :delta2=>-3, :delta3=>4, :castable=>true} }
+      let(:spell) { {delta0: -1, delta1:-2, delta2:-3, delta3:4, :castable=>true} }
       let(:me) { {inv: [2, 3, 4, 1]} }
 
       it { is_expected.to be(true) }
@@ -336,25 +377,25 @@ RSpec.describe GameTurn do
     subject(:degeneration_spell?) { instance.send(:degeneration_spell?, spell) }
 
     context "when the spell is a definite degenerator" do
-      let(:spell) { {:delta0=>3, :delta1=>-1, :delta2=>0, :delta3=>0, :castable=>true} }
+      let(:spell) { {delta0: 3, delta1:-1, delta2:0, delta3:0, :castable=>true} }
 
       it { is_expected.to be(true) }
     end
 
     context "when the spell is a definite transmuter" do
-      let(:spell) { {:delta0=>0, :delta1=>-2, :delta2=>2, :delta3=>0, :castable=>true} }
+      let(:spell) { {delta0: 0, delta1:-2, delta2:2, delta3:0, :castable=>true} }
 
       it { is_expected.to be(false) }
     end
 
     context "when the spell is a mixture of degen and transmute" do
-      let(:spell) { {:delta0=>2, :delta1=>-2, :delta2=>1, :delta3=>0, :castable=>true} }
+      let(:spell) { {delta0: 2, delta1:-2, delta2:1, delta3:0, :castable=>true} }
 
       it { is_expected.to be(false) }
     end
 
     context "when the spell is a complex transmuter" do
-      let(:spell) { {:delta0=>-1, :delta1=>-2, :delta2=>-3, :delta3=>4, :castable=>true} }
+      let(:spell) { {delta0: -1, delta1:-2, delta2:-3, delta3:4, :castable=>true} }
 
       it { is_expected.to be(false) }
     end
@@ -364,13 +405,13 @@ RSpec.describe GameTurn do
     subject(:pure_giver_spell?) { instance.send(:pure_giver_spell?, spell) }
 
     context "when the spell is indeed a pure giver" do
-      let(:spell) { {:delta0=>2, :delta1=>1, :delta2=>0, :delta3=>0, :castable=>true} }
+      let(:spell) { {delta0: 2, delta1:1, delta2:0, delta3:0, :castable=>true} }
 
       it { is_expected.to be(true) }
     end
 
     context "when the spell requires even one ingredient, even if transmuting up" do
-      let(:spell) { {:delta0=>-1, :delta1=>2, :delta2=>2, :delta3=>2, :castable=>true} }
+      let(:spell) { {delta0: -1, delta1:2, delta2:2, delta3:2, :castable=>true} }
 
       it { is_expected.to be(false) }
     end

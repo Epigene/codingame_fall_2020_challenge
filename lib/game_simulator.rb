@@ -56,48 +56,48 @@ class GameSimulator
   }.freeze
 
   LEARNED_SPELL_DATA = {
-    2 => {:type=>"CAST",:repeatable=>false, :delta0=>1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    3 => {:type=>"CAST",:repeatable=>false, :delta0=>0, :delta1=>0, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    4 => {:type=>"CAST",:repeatable=>false, :delta0=>3, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    12 => {:type=>"CAST",:repeatable=>false, :delta0=>2, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    13 => {:type=>"CAST",:repeatable=>false, :delta0=>4, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    14 => {:type=>"CAST",:repeatable=>false, :delta0=>0, :delta1=>0, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    15 => {:type=>"CAST",:repeatable=>false, :delta0=>0, :delta1=>2, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    16 => {:type=>"CAST",:repeatable=>false, :delta0=>1, :delta1=>0, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    18 => {:type=>"CAST",:repeatable=>true, :delta0=>-1, :delta1=>-1, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    17 => {:type=>"CAST",:repeatable=>true, :delta0=>-2, :delta1=>0, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    38 => {:type=>"CAST",:repeatable=>true, :delta0=>-2, :delta1=>2, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    39 => {:type=>"CAST",:repeatable=>true, :delta0=>0, :delta1=>0, :delta2=>-2, :delta3=>2, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    40 => {:type=>"CAST",:repeatable=>true, :delta0=>0, :delta1=>-2, :delta2=>2, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    30 => {:type=>"CAST",:repeatable=>true, :delta0=>-4, :delta1=>0, :delta2=>1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    34 => {:type=>"CAST",:repeatable=>true, :delta0=>-2, :delta1=>0, :delta2=>-1, :delta3=>2, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    0 => {:type=>"CAST",:repeatable=>true, :delta0=>-3, :delta1=>0, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    1 => {:type=>"CAST",:repeatable=>true, :delta0=>3, :delta1=>-1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    5 => {:type=>"CAST",:repeatable=>true, :delta0=>2, :delta1=>3, :delta2=>-2, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    6 => {:type=>"CAST",:repeatable=>true, :delta0=>2, :delta1=>1, :delta2=>-2, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    7 => {:type=>"CAST",:repeatable=>true, :delta0=>3, :delta1=>0, :delta2=>1, :delta3=>-1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    8 => {:type=>"CAST",:repeatable=>true, :delta0=>3, :delta1=>-2, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    9 => {:type=>"CAST",:repeatable=>true, :delta0=>2, :delta1=>-3, :delta2=>2, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    10 => {:type=>"CAST",:repeatable=>true, :delta0=>2, :delta1=>2, :delta2=>0, :delta3=>-1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    11 => {:type=>"CAST",:repeatable=>true, :delta0=>-4, :delta1=>0, :delta2=>2, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    19 => {:type=>"CAST",:repeatable=>true, :delta0=>0, :delta1=>2, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    20 => {:type=>"CAST",:repeatable=>true, :delta0=>2, :delta1=>-2, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    21 => {:type=>"CAST",:repeatable=>true, :delta0=>-3, :delta1=>1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    22 => {:type=>"CAST",:repeatable=>true, :delta0=>0, :delta1=>2, :delta2=>-2, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    23 => {:type=>"CAST",:repeatable=>true, :delta0=>1, :delta1=>-3, :delta2=>1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    24 => {:type=>"CAST",:repeatable=>true, :delta0=>1, :delta1=>3, :delta2=>0, :delta3=>-1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    25 => {:type=>"CAST",:repeatable=>true, :delta0=>1, :delta1=>-3, :delta2=>0, :delta3=>2, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    26 => {:type=>"CAST",:repeatable=>true, :delta0=>1, :delta1=>1, :delta2=>1, :delta3=>-1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    27 => {:type=>"CAST",:repeatable=>true, :delta0=>1, :delta1=>2, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    28 => {:type=>"CAST",:repeatable=>true, :delta0=>4, :delta1=>1, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    31 => {:type=>"CAST",:repeatable=>true, :delta0=>0, :delta1=>3, :delta2=>2, :delta3=>-2, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    32 => {:type=>"CAST",:repeatable=>true, :delta0=>1, :delta1=>1, :delta2=>3, :delta3=>-2, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    35 => {:type=>"CAST",:repeatable=>true, :delta0=>0, :delta1=>0, :delta2=>-3, :delta3=>3, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    36 => {:type=>"CAST",:repeatable=>true, :delta0=>0, :delta1=>-3, :delta2=>3, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    37 => {:type=>"CAST",:repeatable=>true, :delta0=>-3, :delta1=>3, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    33 => {:type=>"CAST",:repeatable=>true, :delta0=>-5, :delta1=>0, :delta2=>3, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    29 => {:type=>"CAST",:repeatable=>true, :delta0=>-5, :delta1=>0, :delta2=>0, :delta3=>2, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    41 => {:type=>"CAST",:repeatable=>true, :delta0=>0, :delta1=>0, :delta2=>2, :delta3=>-1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    2 => {type:"CAST",:repeatable=>false, :delta0=>1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    3 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:0, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    4 => {type:"CAST",:repeatable=>false, :delta0=>3, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    12 => {type:"CAST",:repeatable=>false, :delta0=>2, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    13 => {type:"CAST",:repeatable=>false, :delta0=>4, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    14 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    15 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:2, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    16 => {type:"CAST",:repeatable=>false, :delta0=>1, delta1:0, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    18 => {type:"CAST",:repeatable=>true, :delta0=>-1, delta1:-1, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    17 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:0, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    38 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:2, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    39 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:-2, delta3:2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    40 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:-2, delta2:2, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    30 => {type:"CAST",:repeatable=>true, :delta0=>-4, delta1:0, delta2:1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    34 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:0, delta2:-1, delta3:2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    0 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    1 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:-1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    5 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:3, delta2:-2, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    6 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:1, delta2:-2, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    7 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:0, delta2:1, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    8 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    9 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:-3, delta2:2, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    10 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:2, delta2:0, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    11 => {type:"CAST",:repeatable=>true, :delta0=>-4, delta1:0, delta2:2, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    19 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:2, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    20 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:-2, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    21 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    22 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:2, delta2:-2, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    23 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:-3, delta2:1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    24 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:3, delta2:0, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    25 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:-3, delta2:0, delta3:2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    26 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:1, delta2:1, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    27 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:2, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    28 => {type:"CAST",:repeatable=>true, :delta0=>4, delta1:1, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    31 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:3, delta2:2, delta3:-2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    32 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:1, delta2:3, delta3:-2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    35 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:-3, delta3:3, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    36 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:-3, delta2:3, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    37 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:3, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    33 => {type:"CAST",:repeatable=>true, :delta0=>-5, delta1:0, delta2:3, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    29 => {type:"CAST",:repeatable=>true, :delta0=>-5, delta1:0, delta2:0, delta3:2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    41 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:2, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
   }
 
   POTIONS = {
@@ -162,7 +162,7 @@ class GameSimulator
         raise SimulatorError.new("do not rest twice in a row!")
       end
 
-      p = position.deep_dup
+      p = dup_of(position)
 
       p[:actions].transform_values! do |v|
         if v[:type] == "CAST"
@@ -199,7 +199,8 @@ class GameSimulator
       # 1. learning
       #   removes learned spell from list
       #   adds a spell with correct id to own spells
-      p = position.deep_dup
+      p = dup_of(position)
+
       p[:actions].reject!{ |k, v| k == id }
 
       p[:actions].transform_values! do |v|
@@ -260,7 +261,7 @@ class GameSimulator
         end
       end
 
-      p = position.deep_dup
+      p = dup_of(position)
 
       cast_times.times do
         p[:me][:inv] = p[:me][:inv].add(deltas(cast_spell))
@@ -279,10 +280,29 @@ class GameSimulator
     end
   end
 
+  def dup_of(position)
+    # p1 = position.deep_dup
+
+    dupped_actions =
+      position[:actions].each_with_object({}) do |(k, v), mem|
+        mem[k] = v.dup
+      end
+
+    p2 = {
+      actions: dupped_actions,
+      meta: position[:meta].dup,
+      me: position[:me].dup
+    }
+
+    p2[:me][:inv] = position[:me][:inv].dup
+
+    p2
+  end
+
   # This is the brute-forcing component.
   # Uses heuristics to try most promising paths first
   # @target [Array] # target inventory to solve for
-  # @start [Hash] # the starting position
+  # @start [Hash] # the starting position, actions, me and meta expected
   #
   # @return [Array<String>]
   def moves_towards(target:, start:, path: [], max_depth: 6, depth: 0)
@@ -302,17 +322,21 @@ class GameSimulator
       debug("Starting move and outcome crunch for generation #{ generation }")
       debug("There are #{ positions.keys.size } positions to check moves for")
 
+      final_iteration = generation == max_depth
+
       moves_to_try = []
 
       positions.each_pair do |path, position|
-        moves = moves_from(position: position)
-        debug("There are #{ moves.size } moves that can be made after #{ path }")
+        moves = moves_from(position: position, skip_resting: final_iteration)
+        # debug("There are #{ moves.size } moves that can be made after #{ path }")
         #=> ["REST", "CAST 79"]
 
         moves.each do |move|
           moves_to_try << [move, path]
         end
       end
+
+      debug("There turned out to be #{ moves_to_try.size } moves to check")
 
       data =
         moves_to_try.each_with_object({}) do |(move, path), mem|
@@ -355,7 +379,7 @@ class GameSimulator
       return_prime_candidate =
         if prime_specifics[:distance_from_target][:distance] == 0
           :target_reached
-        elsif generation == max_depth
+        elsif final_iteration
           :max_depth_reached
         else
           false
@@ -401,7 +425,7 @@ class GameSimulator
 
   # Does not care about legality much, since simulator will check when deciding outcome.
   # @return [Array<String>]
-  def moves_from(position:)
+  def moves_from(position:, skip_resting: false)
     moves = []
 
     position[:actions].each do |id, action|
@@ -422,7 +446,9 @@ class GameSimulator
       end
     end
 
-    moves << "REST" unless position[:meta][:previous_move].to_s.start_with?("REST")
+    if !skip_resting && !position[:meta][:previous_move].to_s.start_with?("REST")
+      moves << "REST"
+    end
 
     moves
   end
@@ -430,32 +456,52 @@ class GameSimulator
   # Returns ways can this spell can be cast in. 0, 1 or n(multicast) variants possible.
   # @return [Integer] # number of times the spell can be cast from this inventory
   def possible_cast_times(spell:, inv:)
-    @cast_time_cache ||= {}
-    key = [spell, inv]
+    # @cast_time_cache ||= {}
+    # key = [spell, inv]
 
-    if @cast_time_cache.key?(key)
-      @cast_time_cache[key]
-    else
-      return @cast_time_cache[key] = 0 unless spell[:castable]
+    # if @cast_time_cache.key?(key)
+    #   @cast_time_cache[key]
+    # else
+    #   return @cast_time_cache[key] = 0 unless spell[:castable]
 
-      deltas = deltas(spell)
+    #   deltas = deltas(spell)
 
-      can_cast_once = can_cast?(operation: deltas, from: inv)
+    #   can_cast_once = can_cast?(operation: deltas, from: inv)
 
-      return @cast_time_cache[key] = 0 unless can_cast_once[:can]
+    #   return @cast_time_cache[key] = 0 unless can_cast_once[:can]
 
-      # here we know that can be cast at least once
-      return @cast_time_cache[key] = 1 unless spell[:repeatable]
+    #   # here we know that can be cast at least once
+    #   return @cast_time_cache[key] = 1 unless spell[:repeatable]
 
-      # here we know the spell can be repeated
-      (2..5).to_a.each do |i|
-        next if can_cast?(operation: deltas.map{ |v| v * i}, from: inv)[:can]
+    #   # here we know the spell can be repeated
+    #   (2..5).to_a.each do |i|
+    #     next if can_cast?(operation: deltas.map{ |v| v * i}, from: inv)[:can]
 
-        return @cast_time_cache[key] = i-1
-      end
+    #     return @cast_time_cache[key] = i-1
+    #   end
 
-      return @cast_time_cache[key] = 5
+    #   return @cast_time_cache[key] = 5
+    # end
+
+    return 0 unless spell[:castable]
+
+    deltas = deltas(spell)
+
+    can_cast_once = can_cast?(operation: deltas, from: inv)
+
+    return 0 unless can_cast_once[:can]
+
+    # here we know that can be cast at least once
+    return 1 unless spell[:repeatable]
+
+    # here we know the spell can be repeated
+    (2..5).to_a.each do |i|
+      next if can_cast?(operation: deltas.map{ |v| v * i}, from: inv)[:can]
+
+      return i-1
     end
+
+    return 5
   end
 
   # Takes into account the two constraints
@@ -463,17 +509,22 @@ class GameSimulator
   # - inventory of 10 may not be exceeded
   # @return [Hash] {can: true/false, detail: :insufficient_ingredients/:overflow}
   def can_cast?(operation:, from:)
-    @cast_cache ||= {}
-    key = [operation, from]
+    # @cast_cache ||= {}
+    # key = [operation, from]
 
-    if @cast_cache.key?(key)
-      @cast_cache[key]
-    else
-      result = from.add(operation)
+    # if @cast_cache.key?(key)
+    #   @cast_cache[key]
+    # else
+    #   result = from.add(operation)
 
-      return @cast_cache[key] = {can: false, detail: :insufficient_ingredients} if result.find{ |v| v.negative? }
-      return @cast_cache[key] = {can: false, detail: :overflow} if result.sum > INVENTORY_SIZE
-      @cast_cache[key] = {can: true}
-    end
+    #   return @cast_cache[key] = {can: false, detail: :insufficient_ingredients} if result.find{ |v| v.negative? }
+    #   return @cast_cache[key] = {can: false, detail: :overflow} if result.sum > INVENTORY_SIZE
+    #   @cast_cache[key] = {can: true}
+    # end
+    result = from.add(operation)
+
+    return {can: false, detail: :insufficient_ingredients} if result.find{ |v| v.negative? }
+    return {can: false, detail: :overflow} if result.sum > INVENTORY_SIZE
+    {can: true}
   end
 end
