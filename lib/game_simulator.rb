@@ -152,6 +152,7 @@ class GameSimulator
   #
   # @position [Hash] #
   # @return [Hash]
+  # @return [String] # err message if there's err
   def result(position:, move:)
     portions = move.split(" ")
     verb = portions.first #=> "LEARN", "REST", "CAST"
@@ -159,7 +160,7 @@ class GameSimulator
     case verb
     when "REST"
       if position.dig(:me, 6).to_s.start_with?("REST")
-        raise SimulatorError.new("do not rest twice in a row!")
+        return "do not rest twice in a row!"
       end
 
       p = dup_of(position)
@@ -183,7 +184,7 @@ class GameSimulator
       learn_index = learned_spell[5]
 
       if learn_index > position[:me][0]
-        raise SimulatorError.new("insufficient aqua for learning tax!")
+        return "insufficient aqua for learning tax!"
       end
 
       # needed to know what will be the added spell's id
@@ -230,7 +231,7 @@ class GameSimulator
       id = portions[1].to_i
       cast_spell = position[:actions][id]
 
-      raise SimulatorError.new("spell exhausted!") unless cast_spell[5]
+      return "spell exhausted!" unless cast_spell[5]
 
       cast_times =
         if portions.size > 2
@@ -240,7 +241,7 @@ class GameSimulator
         end
 
       if cast_times > 1 && !cast_spell[6]
-        raise SimulatorError.new("spell can't multicast!")
+        return "spell can't multicast!"
       end
 
       operation =
@@ -254,10 +255,10 @@ class GameSimulator
 
       if !casting_check[:can]
         if casting_check[:detail] == :insufficient_ingredients
-          raise SimulatorError.new("insufficient ingredients for casting!") if cast_times == 1
-          raise SimulatorError.new("insufficient ingredients for multicasting!")
+          return "insufficient ingredients for casting!" if cast_times == 1
+          return "insufficient ingredients for multicasting!"
         else
-          raise SimulatorError.new("casting overfills inventory!")
+          return "casting overfills inventory!"
         end
       end
 
@@ -283,7 +284,7 @@ class GameSimulator
   def dup_of(position)
     # 2.22s
     dupped_actions = position[:actions].dup
-    dupped_actions.transform_values!{ |v| v.dup }
+    dupped_actions.transform_values!(&:dup)
 
     {
       actions: dupped_actions,
@@ -314,22 +315,22 @@ class GameSimulator
 
     return [] if initial_distance_from_target[:distance].zero?
 
+    debug("Initial distance is #{ initial_distance_from_target }")
+
     # This cleans position passed on in hopes of saving on dup time, works well
-    start[:actions] = start[:actions].select do |k, v|
+    start[:actions] = start[:actions].select do |_k, v|
       MY_MOVES.include?(action_type(v))
     end.to_h
 
     max_allowed_learning_moves = max_depth / 2 # in case of odd max debt, learn less
 
-    positions = {
-      path => start
-    }
+    positions = {path => start}
 
     closest_so_far = nil
 
     (1..max_depth).to_a.each do |generation|
       debug("Starting move and outcome crunch for generation #{ generation }")
-      debug("There are #{ positions.keys.size } positions to check moves for")
+      # debug("There are #{ positions.keys.size } positions to check moves for")
 
       final_iteration = generation == max_depth
       penultimate_iteration = generation == max_depth - 1
@@ -368,11 +369,12 @@ class GameSimulator
         outcome =
           begin
             result(position: positions[path], move: move)
-          rescue SimulatorError => _e
-            next
           rescue => e
             raise("Path #{ path << move } leads to err: '#{ e.message }' in #{ e.backtrace.first }")
           end
+
+        # outcome was an expected invalid move, skipping the outcome
+        next if outcome.is_a?(String)
 
         # 3. evaluate the outcome
         distance_from_target = distance_from_target(
@@ -478,22 +480,22 @@ class GameSimulator
   #
   # @return [Hash]
   def distance_from_target(target:, inv:)
-    # @distance_cache ||= {}
-    # key = [target, inv]
+    @distance_cache ||= {}
+    key = [target, inv]
 
-    # if @distance_cache.key?(key)
-    #   @distance_cache[key]
-    # else
-    #   sum = target.add(inv.map{|v| -v})
-    #   distance = sum.map.with_index{ |v, i| next unless v.positive?; v*i.next }.compact.sum
-    #   bonus = sum.map.with_index{ |v, i| next unless v.negative?; -v*i.next }.compact.sum
+    if @distance_cache.key?(key)
+      @distance_cache[key]
+    else
+      sum = target.add(inv.map{|v| -v})
+      distance = sum.map.with_index{ |v, i| next unless v.positive?; v*i.next }.compact.sum
+      bonus = sum.map.with_index{ |v, i| next unless v.negative?; -v*i.next }.compact.sum
 
-    #   @distance_cache[key] = {distance: distance, bonus: bonus}
-    # end
-    sum = target.add(inv.map{|v| -v})
-    distance = sum.map.with_index{ |v, i| next unless v.positive?; v*i.next }.compact.sum
-    bonus = sum.map.with_index{ |v, i| next unless v.negative?; -v*i.next }.compact.sum
-    {distance: distance, bonus: bonus}
+      @distance_cache[key] = {distance: distance, bonus: bonus}
+    end
+    # sum = target.add(inv.map{|v| -v})
+    # distance = sum.map.with_index{ |v, i| next unless v.positive?; v*i.next }.compact.sum
+    # bonus = sum.map.with_index{ |v, i| next unless v.negative?; -v*i.next }.compact.sum
+    # {distance: distance, bonus: bonus}
   end
 
   # Does not care about legality much, since simulator will check when deciding outcome.
@@ -512,11 +514,12 @@ class GameSimulator
         next if times == 0
 
         times.times do |i|
-          if i == 0
-            moves << "CAST #{ id }"
-          else
-            moves << "CAST #{ id } #{ i.next }"
-          end
+          moves <<
+            if i == 0
+              "CAST #{ id }"
+            else
+              "CAST #{ id } #{ i.next }"
+            end
         end
       end
     end
