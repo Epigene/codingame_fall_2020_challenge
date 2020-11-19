@@ -33,8 +33,8 @@ RSpec.describe GameSimulator do
       end
 
       let(:outcome) do
-        position.deep_dup.tap do |p|
-          p[:actions] = {
+        {
+          actions: {
             24 => {type:"LEARN", delta0: 0, delta1:3, delta2:0, delta3:-1, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
             0 => {type:"LEARN", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
             18 => {type:"LEARN", delta0: -1, delta1:-1, delta2:0, delta3:1, price: 0, :tome_index=>2, :tax_count=>0, :castable=>false, :repeatable=>true},
@@ -49,11 +49,9 @@ RSpec.describe GameSimulator do
             84 => {type:"OPPONENT_CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             86 => {type:"CAST", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true}
-          }
-
-          p[:me][5] = 2
-          p[:me][6] = move
-        end
+          },
+          me: [3, 0, 0, 0, 0, 2, move]
+        }
       end
 
       it "returns the next game state, with spell removed from tome and added to memory" do
@@ -87,8 +85,8 @@ RSpec.describe GameSimulator do
       end
 
       let(:outcome) do
-        position.deep_dup.tap do |p|
-          p[:actions] = {
+        {
+          actions: {
             24 => {type:"LEARN", delta0: 0, delta1:3, delta2:0, delta3:-1, price: 0, :tome_index=>0, :tax_count=>1, :castable=>false, :repeatable=>true},
             18 => {type:"LEARN", delta0: -1, delta1:-1, delta2:0, delta3:1, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
             21 => {type:"LEARN", delta0: -3, delta1:1, delta2:1, delta3:0, price: 0, :tome_index=>2, :tax_count=>0, :castable=>false, :repeatable=>true},
@@ -103,10 +101,9 @@ RSpec.describe GameSimulator do
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             87 => {type:"OPPONENT_CAST", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
             88 => described_class::LEARNED_SPELL_DATA[0]
-          }
-
-          p[:me] = [1, 0, 0, 0, 0, 3, move]
-        end
+          },
+          me: [1, 0, 0, 0, 0, 3, move]
+        }
       end
 
       it "returns a state where I have the spell and paid tax (gone from my inv, and put on next spell, and further spells shifted down" do
@@ -133,8 +130,8 @@ RSpec.describe GameSimulator do
       end
 
       let(:outcome) do
-        position.deep_dup.tap do |p|
-          p[:actions] = {
+        {
+          actions: {
             0 => {type:"LEARN", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
             78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
@@ -142,10 +139,9 @@ RSpec.describe GameSimulator do
             81 => {type:"CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             87 => {type:"OPPONENT_CAST", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
             88 => described_class::LEARNED_SPELL_DATA[24]
-          }
-
-          p[:me] = [3, 0, 0, 0, 0, 3, move]
-        end
+          },
+          me: [3, 0, 0, 0, 0, 3, move]
+        }
       end
 
       it "returns the next game state, with spell removed from tome and added to memory, and aqua added to my inv" do
