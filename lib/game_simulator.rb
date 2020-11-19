@@ -300,7 +300,7 @@ class GameSimulator
   end
 
   MY_MOVES = ["CAST", "LEARN"].to_set.freeze
-  DISTANCE_CUTOFF_DELTA = 7
+  DISTANCE_CUTOFF_DELTA = 6
 
   # This is the brute-forcing component.
   # Uses heuristics to try most promising paths first
@@ -400,7 +400,7 @@ class GameSimulator
         end
         #=> [[move, data], ["CATS 78", {outcome: {actions: {...}}}]]
       end
-      debug("Sorting gen #{ generation } took #{ sort_time * 1000 }ms")
+      debug("Sorting gen #{ generation } took #{ (sort_time * 1000).round(1) }ms")
 
       prime_candidate = data.first
       prime_specifics = prime_candidate[1]
@@ -438,6 +438,8 @@ class GameSimulator
 
         cutoff_index = nil
 
+        # binding.pry if generation == 4
+
         data.each.with_index do |(new_path, specifics), i|
           if specifics[:distance_from_target][:distance] < no_longer_tolerable_distance
             next
@@ -464,7 +466,7 @@ class GameSimulator
           debug("Nothing to cut off, closest variant has #{ prime_specifics[:distance_from_target] }, and furthest has #{ data.last[1][:distance_from_target] }")
         end
       end
-      debug("Huristic filter run took #{ huristic_run }")
+      debug("Huristic filter run took #{ (huristic_run * 1000).round(1) }ms")
 
       positions = {}
 

@@ -290,8 +290,8 @@ RSpec.describe GameSimulator do
         }
       end
 
-      it "raises a descriptive error" do
-        expect{ subject }.to raise_error(RuntimeError, %r'do not rest twice in a row!')
+      it "returns an error string" do
+        is_expected.to match(%r'do not rest twice in a row!')
       end
     end
 
@@ -315,10 +315,8 @@ RSpec.describe GameSimulator do
         }
       end
 
-      it "raises a descriptive error" do
-        expect{ subject }.to raise_error(
-          RuntimeError, %r'insufficient aqua for learning tax!'
-        )
+      it "returns an error string" do
+        is_expected.to match(%r'insufficient aqua for learning tax!')
       end
     end
 
@@ -336,8 +334,8 @@ RSpec.describe GameSimulator do
         }
       end
 
-      it "raises a descriptive error" do
-        expect{ subject }.to raise_error(RuntimeError, %r'spell exhausted!')
+      it "returns an error string" do
+        is_expected. to match(%r'spell exhausted!')
       end
     end
 
@@ -355,8 +353,8 @@ RSpec.describe GameSimulator do
         }
       end
 
-      it "raises a descriptive error" do
-        expect{ subject }.to raise_error(RuntimeError, %r'insufficient ingredients for casting!')
+      it "returns an error string" do
+        is_expected. to match(%r'insufficient ingredients for casting!')
       end
     end
 
@@ -375,8 +373,8 @@ RSpec.describe GameSimulator do
         }
       end
 
-      it "raises a descriptive error" do
-        expect{ subject }.to raise_error(RuntimeError, %r'insufficient ingredients for multicasting!')
+      it "returns an error string" do
+        is_expected.to match(%r'insufficient ingredients for multicasting!')
       end
     end
 
@@ -395,8 +393,8 @@ RSpec.describe GameSimulator do
         }
       end
 
-      it "raises a descriptive error" do
-        expect{ subject }.to raise_error(RuntimeError, %r'casting overfills inventory!')
+      it "returns an error string" do
+        is_expected.to match(%r'casting overfills inventory!')
       end
     end
 
@@ -414,8 +412,8 @@ RSpec.describe GameSimulator do
         }
       end
 
-      it "raises a descriptive error" do
-        expect{ subject }.to raise_error(RuntimeError, %r"spell can't multicast!")
+      it "returns an error string" do
+        is_expected.to match(%r"spell can't multicast!")
       end
     end
   end
@@ -639,7 +637,7 @@ RSpec.describe GameSimulator do
         allow(instance).to(
           receive(:result).
           with(position: anything, move: "CAST 90 2")
-        ).and_raise(SimulatorError.new("mehh"))
+        ).and_return("Oops")
       end
 
       it "ignores the error, merely skips that move branch" do
