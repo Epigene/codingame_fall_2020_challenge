@@ -361,7 +361,7 @@ class GameSimulator
 
     return [] if initial_distance_from_target[:distance].zero?
 
-    debug("Initial distance is #{ initial_distance_from_target }")
+    # debug("Initial distance is #{ initial_distance_from_target }")
 
     # This cleans position passed on in hopes of saving on dup time, works well
     start[:actions] = start[:actions].select do |_k, v|
@@ -378,7 +378,7 @@ class GameSimulator
       break if moves_to_return
 
       if ms_spent > 45
-        debug("Quick-returning #{ prime_candidate } due to imminent timeout!")
+        debug("Quick-returning #{ prime_candidate[0] } due to imminent timeout!")
         return prime_candidate[0]
       end
 
@@ -437,7 +437,7 @@ class GameSimulator
                 }
               ]
             end
-          end
+          end * 1000
 
           ms_spent_in_this_gen += position_processing_time
 
@@ -478,53 +478,52 @@ class GameSimulator
           # here's we can inject heuristics of which results to keep and drop for next gen
           # 1. drop outcomes that are too far behind the best variant. Since some spells give 4 in one move,
           #     probably safe to use 8+
-          heuristic_run = Benchmark.realtime do
-            # 1. dropping hopeless variations
-            lowest_distance = prime_specifics[:distance_from_target][:distance]
 
-            no_longer_tolerable_distance =
-              # the further in we are, the less forgiving of bad variations we are
-              if penultimate_iteration
-                lowest_distance + DISTANCE_CUTOFF_DELTA - 1
-              else
-                lowest_distance + DISTANCE_CUTOFF_DELTA
-              end
+          # 1. dropping hopeless variations
+          lowest_distance = prime_specifics[:distance_from_target][:distance]
 
-            cutoff_index = nil
+          no_longer_tolerable_distance =
+            # the further in we are, the less forgiving of bad variations we are
+            if penultimate_iteration
+              lowest_distance + DISTANCE_CUTOFF_DELTA - 1
+            else
+              lowest_distance + DISTANCE_CUTOFF_DELTA
+            end
 
-            # binding.pry if generation == 4
+          cutoff_index = nil
 
-            data.each.with_index do |(new_path, specifics), i|
-              if specifics[:distance_from_target][:distance] < no_longer_tolerable_distance
-                next
-              end
+          # binding.pry if generation == 4
 
-              # detects no progress towards target past the halfway mark, pure idling here.
-              if past_halfway
-                if specifics[:distance_from_target][:distance] <= initial_distance_from_target[:distance]
-                  if specifics[:distance_from_target][:bonus] <= initial_distance_from_target[:bonus]
-                    cutoff_index = i
-                    break
-                  end
+          data.each.with_index do |(new_path, specifics), i|
+            if specifics[:distance_from_target][:distance] < no_longer_tolerable_distance
+              next
+            end
+
+            # detects no progress towards target past the halfway mark, pure idling here.
+            if past_halfway
+              if specifics[:distance_from_target][:distance] <= initial_distance_from_target[:distance]
+                if specifics[:distance_from_target][:bonus] <= initial_distance_from_target[:bonus]
+                  cutoff_index = i
+                  break
                 end
               end
-
-              cutoff_index = i
-              break
             end
 
-            if cutoff_index
-              debug("Cutoff at index #{ cutoff_index } from #{ data.size }")
-              data = data[0..(cutoff_index-1)]
-            else
-              debug(
-                "Nothing to cut off, "\
-                "closest variant has #{ prime_specifics[:distance_from_target] }, "\
-                "and furthest has #{ data.last[1][:distance_from_target] }"
-              ) if past_halfway
-            end
+            cutoff_index = i
+            break
           end
-          debug("Heuristic filter run took #{ (heuristic_run * 1000).round(1) }ms")
+
+          if cutoff_index
+            # debug("Cutoff at index #{ cutoff_index } from #{ data.size }")
+            debug("Cutoff at index #{ cutoff_index } from OMITTED")
+            data = data[0..(cutoff_index-1)]
+          else
+            debug(
+              "Nothing to cut off, "\
+              "closest variant has #{ prime_specifics[:distance_from_target] }, "\
+              "and furthest has #{ data.last[1][:distance_from_target] }"
+            ) if past_halfway
+          end
 
           positions = {}
 
@@ -536,7 +535,7 @@ class GameSimulator
 
       ms_spent += generation_runtime
 
-      debug("Gen #{ generation } ran for #{ generation_runtime }, totalling #{ ms_spent }") if past_halfway
+      debug("Gen #{ generation } ran for #{ generation_runtime.round(1) }ms, totalling #{ ms_spent.round(1) }ms") if past_halfway
     end
 
     moves_to_return
