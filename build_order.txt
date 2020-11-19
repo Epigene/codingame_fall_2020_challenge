@@ -1,4 +1,4 @@
+lib/game_header.rb
 lib/game_simulator.rb
 lib/game_turn.rb
-lib/game_header.rb
 lib/game_loop.rb

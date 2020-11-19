@@ -25,10 +25,10 @@ loop do
     actions[action_id.to_i] =
       if action_type == "LEARN"
         # [type, (1..4)inv, 5=tome_index, 6=tax_bonus]
-        [action_type, delta0, delta1, delta2, delta3, tome_index, tax_count]
+        [action_type, delta0.to_i, delta1.to_i, delta2.to_i, delta3.to_i, tome_index.to_i, tax_count.to_i]
       elsif action_type == "CAST"
         # [type, (1..4)inv, 5=castable, 6=repeatable]
-        [action_type, delta0, delta1, delta2, delta3, castable, repeatable]
+        [action_type, delta0.to_i, delta1.to_i, delta2.to_i, delta3.to_i, castable.to_i == 1, repeatable.to_i == 1]
       else # as in BREW and OPP_CAST
         {
           type: action_type,
@@ -68,6 +68,7 @@ loop do
   )
 
   # in the first league: BREW <id> | WAIT; later: BREW <id> | CAST <id> [<times>] | LEARN <id> | REST | WAIT
-  puts(@previous_move = turn.move)
+  # puts(@previous_move = turn.move)
+  puts(@previous_move = turn.move_v2)
   @turn += 1
 end

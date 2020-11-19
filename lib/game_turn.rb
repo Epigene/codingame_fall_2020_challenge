@@ -242,7 +242,11 @@ class GameTurn
 
       if whats_missing[1] > 0 || ((whats_missing[2] > 0 || whats_missing[3] > 0) && me[0..3][1] == 0)
         spells_for_getting_green =
-          my_spells.select{ |id, spell| spell[2].positive? && spell[5] }
+          begin
+            my_spells.select{ |id, spell| spell[2].positive? && spell[5] }
+          rescue => e
+            debug my_spells
+          end
 
         castable_spell =
           spells_for_getting_green.find do |id, spell|
@@ -254,7 +258,11 @@ class GameTurn
 
       if (whats_missing[0] > 0 || (whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0) && me[0..3][0] == 0)
         spells_for_getting_blue =
-          my_spells.select{ |id, spell| spell[1].positive? && spell[5] }
+          begin
+            my_spells.select{ |id, spell| spell[1].positive? && spell[5] }
+          rescue => e
+            debug my_spells
+          end
 
         castable_spell =
           spells_for_getting_blue.find do |id, spell|
