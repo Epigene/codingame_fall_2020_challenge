@@ -270,7 +270,7 @@ RSpec.describe GameTurn do
 
       it "runs in under 50ms" do
         runtime = Benchmark.realtime do
-          is_expected.to start_with("REST")
+          is_expected.to match(%r'\A((REST)|(CAST 78))')
         end * 1000
 
         expect(runtime).to be < 50 # as below 50ms
