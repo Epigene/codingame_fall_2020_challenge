@@ -173,17 +173,16 @@ RSpec.describe GameTurn do
           48 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-2, :delta3=>0, :price=>10, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
           56 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-3, :delta3=>0, :price=>13, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
           51 => {:type=>"BREW", :delta0=>-2, :delta1=>0, :delta2=>-3, :delta3=>0, :price=>11, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
-          36 => {:type=>"LEARN", :delta0=>0, :delta1=>-3, :delta2=>3, :delta3=>0, :price=>0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-          31 => {:type=>"LEARN", :delta0=>0, :delta1=>3, :delta2=>2, :delta3=>-2, :price=>0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
-          34 => {:type=>"LEARN", :delta0=>-2, :delta1=>0, :delta2=>-1, :delta3=>2, :price=>0, :tome_index=>2, :tax_count=>0, :castable=>false, :repeatable=>true},
-          16 => {:type=>"LEARN", :delta0=>1, :delta1=>0, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>3, :tax_count=>0, :castable=>false, :repeatable=>false},
-          1 => {:type=>"LEARN", :delta0=>3, :delta1=>-1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>4, :tax_count=>0, :castable=>false, :repeatable=>true},
-          22 => {:type=>"LEARN", :delta0=>0, :delta1=>2, :delta2=>-2, :delta3=>1, :price=>0, :tome_index=>5, :tax_count=>0, :castable=>false, :repeatable=>true},
-          78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          81 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          36 => {:type=>"LEARN", :delta0=>0, :delta1=>-3, :delta2=>3, :delta3=>0, :tome_index=>0, :tax_count=>0},
+          31 => {:type=>"LEARN", :delta0=>0, :delta1=>3, :delta2=>2, :delta3=>-2, :tome_index=>1, :tax_count=>0},
+          34 => {:type=>"LEARN", :delta0=>-2, :delta1=>0, :delta2=>-1, :delta3=>2, :tome_index=>2, :tax_count=>0},
+          16 => {:type=>"LEARN", :delta0=>1, :delta1=>0, :delta2=>1, :delta3=>0, :tome_index=>3, :tax_count=>0},
+          1 => {:type=>"LEARN", :delta0=>3, :delta1=>-1, :delta2=>0, :delta3=>0, :tome_index=>4, :tax_count=>0},
+          22 => {:type=>"LEARN", :delta0=>0, :delta1=>2, :delta2=>-2, :delta3=>1, :tome_index=>5, :tax_count=>0},
+          78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          81 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
         }
       end
 
@@ -192,9 +191,38 @@ RSpec.describe GameTurn do
 
       it "returns the first step towards easy brewin of leftmost potion" do
         is_expected.to eq(
-          "LEARN 16 let's brew 60 via [LEARN 16, CAST 86, REST, CAST 86, REST, CAST 86]"
+          "LEARN 16 let's brew 60 via [LEARN 16, CAST 82, REST, CAST 82, REST, CAST 82]"
         )
       end
+    end
+  end
+
+  describe "array vs hash dup" do
+    before(:all) do
+      TestProf::StackProf.run
+    end
+
+    it "compares time it takes to dup array vs a hash 40k times" do
+      hash = {type:"CAST", delta0: 4, delta1:1, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+      array = ["CAST", 4, 1, -1, 0, 0, -1, -1, true, false]
+
+      array_time = Benchmark.realtime do
+        40_000.times do
+          array.dup
+        end
+      end
+
+      puts("Array time: #{ array_time }")
+
+      hash_time = Benchmark.realtime do
+        40_000.times do
+          hash.dup
+        end
+      end
+
+      puts("Hash time: #{ hash_time }")
+
+      expect(1).to eq(1)
     end
   end
 

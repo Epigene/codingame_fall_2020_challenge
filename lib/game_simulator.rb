@@ -281,12 +281,8 @@ class GameSimulator
   end
 
   def dup_of(position)
-    # p1 = position.deep_dup
-
-    dupped_actions =
-      position[:actions].each_with_object({}) do |(k, v), mem|
-        mem[k] = v.dup
-      end
+    dupped_actions = position[:actions].dup
+    dupped_actions.transform_values!{ |v| v.dup }
 
     p2 = {
       actions: dupped_actions,
@@ -298,6 +294,8 @@ class GameSimulator
 
     p2
   end
+
+  MY_MOVES = ["CAST", "LEARN"].to_set.freeze
 
   # This is the brute-forcing component.
   # Uses heuristics to try most promising paths first
@@ -312,6 +310,11 @@ class GameSimulator
       )
 
       return [] if distance_from_target[:distance].zero?
+
+      # This cleans position passed on in hopes of saving on dup time
+      start[:actions] = start[:actions].select do |k, v|
+        MY_MOVES.include?(v[:type])
+      end.to_h
     end
 
     positions = {
@@ -409,18 +412,22 @@ class GameSimulator
   #
   # @return [Hash]
   def distance_from_target(target:, inv:)
-    @distance_cache ||= {}
-    key = [target, inv]
+    # @distance_cache ||= {}
+    # key = [target, inv]
 
-    if @distance_cache.key?(key)
-      @distance_cache[key]
-    else
-      sum = target.add(inv.map{|v| -v})
-      distance = sum.map.with_index{ |v, i| next unless v.positive?; v*i.next }.compact.sum
-      bonus = sum.map.with_index{ |v, i| next unless v.negative?; -v*i.next }.compact.sum
+    # if @distance_cache.key?(key)
+    #   @distance_cache[key]
+    # else
+    #   sum = target.add(inv.map{|v| -v})
+    #   distance = sum.map.with_index{ |v, i| next unless v.positive?; v*i.next }.compact.sum
+    #   bonus = sum.map.with_index{ |v, i| next unless v.negative?; -v*i.next }.compact.sum
 
-      @distance_cache[key] = {distance: distance, bonus: bonus}
-    end
+    #   @distance_cache[key] = {distance: distance, bonus: bonus}
+    # end
+    sum = target.add(inv.map{|v| -v})
+    distance = sum.map.with_index{ |v, i| next unless v.positive?; v*i.next }.compact.sum
+    bonus = sum.map.with_index{ |v, i| next unless v.negative?; -v*i.next }.compact.sum
+    {distance: distance, bonus: bonus}
   end
 
   # Does not care about legality much, since simulator will check when deciding outcome.
