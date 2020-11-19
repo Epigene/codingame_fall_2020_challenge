@@ -343,9 +343,12 @@ class GameSimulator
           past_halfway &&
           path.count { |v| v.start_with?("LEARN") } >= max_allowed_learning_moves
 
+        just_learned = position[:me][4]
+        binding.pry
+
         moves = moves_from(
           position: position,
-          skip_resting: final_iteration,
+          skip_resting: final_iteration || just_learned,
           skip_learning: final_iteration || already_studied_max_times
         )
         # debug("There are #{ moves.size } moves that can be made after #{ path }")
