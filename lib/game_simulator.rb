@@ -343,8 +343,8 @@ class GameSimulator
           past_halfway &&
           path.count { |v| v.start_with?("LEARN") } >= max_allowed_learning_moves
 
-        just_learned = position[:me][4]
-        binding.pry
+        # HH This prevents resting after just learning a spell
+        just_learned = position[:me][6].to_s.start_with?("LEARN")
 
         moves = moves_from(
           position: position,

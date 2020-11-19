@@ -22,18 +22,27 @@ loop do
     action_id, action_type, delta0, delta1, delta2, delta3, price, tome_index, tax_count, castable, repeatable = gets.split(" ")
     action_id = action_id.to_i
 
-    actions[action_id.to_i] = {
-      type: action_type,
-      delta0: delta0.to_i,
-      delta1: delta1.to_i,
-      delta2: delta2.to_i,
-      delta3: delta3.to_i,
-      price: price.to_i,
-      tome_index: tome_index.to_i,
-      tax_count: tax_count.to_i,
-      castable: castable.to_i == 1,
-      repeatable: repeatable.to_i == 1
-    }
+    actions[action_id.to_i] =
+      if action_type == "LEARN"
+        # [type, (1..4)inv, 5=tome_index, 6=tax_bonus]
+        [action_type, delta0, delta1, delta2, delta3, tome_index, tax_count]
+      elsif action_type == "CAST"
+        # [type, (1..4)inv, 5=castable, 6=repeatable]
+        [action_type, delta0, delta1, delta2, delta3, castable, repeatable]
+      else # as in BREW and OPP_CAST
+        {
+          type: action_type,
+          delta0: delta0.to_i,
+          delta1: delta1.to_i,
+          delta2: delta2.to_i,
+          delta3: delta3.to_i,
+          price: price.to_i,
+          tome_index: tome_index.to_i,
+          tax_count: tax_count.to_i,
+          castable: castable.to_i == 1,
+          repeatable: repeatable.to_i == 1
+        }
+      end
   end
 
   inv0, inv1, inv2, inv3, score = gets.split(" ").map(&:to_i)
