@@ -391,7 +391,7 @@ class GameSimulator
       end
 
       # takes very little time
-      # sort_time = Benchmark.realtime do
+      sort_time = Benchmark.realtime do
         data.sort_by! do |(_move, path), specifics|
           [
             specifics[:distance_from_target][:distance],
@@ -399,8 +399,8 @@ class GameSimulator
           ]
         end
         #=> [[move, data], ["CATS 78", {outcome: {actions: {...}}}]]
-      # end
-      # debug("Sorting gen #{ generation } took #{ sort_time }")
+      end
+      debug("Sorting gen #{ generation } took #{ sort_time * 1000 }ms")
 
       prime_candidate = data.first
       prime_specifics = prime_candidate[1]
