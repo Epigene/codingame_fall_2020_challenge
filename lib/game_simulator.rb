@@ -310,6 +310,7 @@ class GameSimulator
   #
   # @return [Array<String>]
   def moves_towards(target:, start:, path: [], max_depth: MAXIMUM_DEPTH, depth: 0)
+    prime_candidate = nil
     moves_to_return = nil
 
     initial_distance_from_target = distance_from_target(
@@ -333,6 +334,11 @@ class GameSimulator
 
     (1..max_depth).to_a.each do |generation|
       break if moves_to_return
+
+      if ms_spent > 45
+        debug("Quick-returning #{ prime_candidate } due to imminent timeout!")
+        return prime_candidate[0]
+      end
 
       past_halfway = generation >= (max_depth / 2).next
 
