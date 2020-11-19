@@ -14,6 +14,15 @@ def deltas(action)
   [action[:delta0], action[:delta1], action[:delta2], action[:delta3]]
 end
 
+# @return [String]
+def action_type(action)
+  if action.is_a?(Hash)
+    action[:type]
+  else
+    action[0]
+  end
+end
+
 class Array
   # monkeypatches Array to allow adding inventories
   def add(other)

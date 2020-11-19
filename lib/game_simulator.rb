@@ -165,7 +165,7 @@ class GameSimulator
       p = dup_of(position)
 
       p[:actions].transform_values! do |v|
-        if v[:type] == "CAST"
+        if action_type(v) == "CAST"
           v[:castable] = true
           v
         else
@@ -188,8 +188,8 @@ class GameSimulator
 
       # needed to know what will be the added spell's id
       max_cast_id =
-        position[:actions].max_by do |id, data|
-          if SPELL_TYPES.include?(data[:type])
+        position[:actions].max_by do |id, action|
+          if SPELL_TYPES.include?(action_type(action))
             id
           else
             -1
@@ -204,7 +204,7 @@ class GameSimulator
       p[:actions].reject!{ |k, v| k == id }
 
       p[:actions].transform_values! do |v|
-        if v[:type] == "LEARN"
+        if action_type(v) == "LEARN"
           if v[:tome_index] > learn_index
             v[:tome_index] -= 1
           end
@@ -316,7 +316,7 @@ class GameSimulator
 
       # This cleans position passed on in hopes of saving on dup time, works well
       start[:actions] = start[:actions].select do |k, v|
-        MY_MOVES.include?(v[:type])
+        MY_MOVES.include?(action_type(v))
       end.to_h
     end
 
@@ -439,9 +439,11 @@ class GameSimulator
     moves = []
 
     position[:actions].each do |id, action|
-      if action[:type] == "LEARN" && !skip_learning
+      type = action_type(action)
+
+      if type == "LEARN" && !skip_learning
         moves << "LEARN #{ id }"
-      elsif action[:type] == "CAST"
+      elsif type == "CAST"
         times = possible_cast_times(spell: action, inv: position[:me][0..3])
 
         next if times == 0

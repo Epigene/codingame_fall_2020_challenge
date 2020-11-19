@@ -106,20 +106,20 @@ class GameTurn
     # @return [Hash]
     def potions
       @potions ||= actions.to_a.
-        select{ |id, data| data[:type] == "BREW" }.
-        sort_by{ |id, data| -data[:price] }.
+        select{ |id, action| action_type(action) == "BREW" }.
+        sort_by{ |id, action| -action[:price] }.
         to_h
     end
 
     def my_spells
       @my_spells ||= actions.to_a.
-        select{ |id, data| data[:type] == "CAST" }.
+        select{ |id, action| action_type(action) == "CAST" }.
         to_h
     end
 
     def tomes
       @tomes ||= actions.to_a.
-        select{ |id, data| data[:type] == "LEARN" }.
+        select{ |id, action| action_type(action) == "LEARN" }.
         to_h
     end
 
@@ -294,9 +294,11 @@ class GameTurn
     # @potion [Hash] # {:delta0=>0, delta1:-2, delta2:0, delta3:0}
     # @return [Boolean]
     def i_can_brew?(potion)
+      deltas = deltas(potion)
+
       problems =
         (0..3).to_a.map do |i|
-          next if (me[:inv][i] + potion["delta#{ i }".to_sym]) >= 0
+          next if (me[:inv][i] + deltas[i]) >= 0
 
           i
         end
