@@ -281,13 +281,21 @@ class GameSimulator
   end
 
   def dup_of(position)
+    # 2.22s
     dupped_actions = position[:actions].dup
     dupped_actions.transform_values!{ |v| v.dup }
 
-    p2 = {
+    {
       actions: dupped_actions,
       me: position[:me].dup
     }
+
+    # # 2.38s
+    # {
+    #   # actions: position[:actions].map{ |k, v| [k, v.dup]}.to_h,
+    #   # actions: position[:actions].each_with_object({}){ |(k, v), mem| mem[k] = v.dup },
+    #   me: position[:me].dup
+    # }
   end
 
   MY_MOVES = ["CAST", "LEARN"].to_set.freeze
@@ -306,7 +314,7 @@ class GameSimulator
 
       return [] if distance_from_target[:distance].zero?
 
-      # This cleans position passed on in hopes of saving on dup time
+      # This cleans position passed on in hopes of saving on dup time, works well
       start[:actions] = start[:actions].select do |k, v|
         MY_MOVES.include?(v[:type])
       end.to_h
@@ -325,7 +333,7 @@ class GameSimulator
       moves_to_try = []
 
       positions.each_pair do |path, position|
-        moves = moves_from(position: position, skip_resting: final_iteration)
+        moves = moves_from(position: position, skip_resting: final_iteration, skip_learning: final_iteration)
         # debug("There are #{ moves.size } moves that can be made after #{ path }")
         #=> ["REST", "CAST 79"]
 
@@ -427,11 +435,11 @@ class GameSimulator
 
   # Does not care about legality much, since simulator will check when deciding outcome.
   # @return [Array<String>]
-  def moves_from(position:, skip_resting: false)
+  def moves_from(position:, skip_resting: false, skip_learning: false)
     moves = []
 
     position[:actions].each do |id, action|
-      if action[:type] == "LEARN"
+      if action[:type] == "LEARN" && !skip_learning
         moves << "LEARN #{ id }"
       elsif action[:type] == "CAST"
         times = possible_cast_times(spell: action, inv: position[:me][0..3])
@@ -506,9 +514,15 @@ class GameSimulator
     return 5
   end
 
+  NO_INGREDIENTS = {can: false, detail: :insufficient_ingredients}.freeze
+  INVENTORY_OVERFLOW = {can: false, detail: :overflow}.freeze
+  CANN = {can: true}.freeze
+
   # Takes into account the two constraints
   # - ingredients must suffice
   # - inventory of 10 may not be exceeded
+  #
+  # @operation [Array] # deltas
   # @return [Hash] {can: true/false, detail: :insufficient_ingredients/:overflow}
   def can_cast?(operation:, from:)
     # @cast_cache ||= {}
@@ -525,8 +539,9 @@ class GameSimulator
     # end
     result = from.add(operation)
 
-    return {can: false, detail: :insufficient_ingredients} if result.find{ |v| v.negative? }
-    return {can: false, detail: :overflow} if result.sum > INVENTORY_SIZE
-    {can: true}
+    return NO_INGREDIENTS if result.find{ |v| v.negative? }
+    return INVENTORY_OVERFLOW if result.sum > INVENTORY_SIZE
+
+    CANN
   end
 end
