@@ -74,7 +74,7 @@ class GameTurn
         #=> [id, tome]
 
         if closest_pure_giver_spell
-          tax_for_giver = [closest_pure_giver_spell[1][5]-1, 0].max
+          tax_for_giver = [closest_pure_giver_spell[1][5], 0].max
 
           the_moves = GameSimulator.the_instance.moves_towards(
             start: position, target: [tax_for_giver, 0, 0, 0]

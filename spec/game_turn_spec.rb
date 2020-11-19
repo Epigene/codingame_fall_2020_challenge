@@ -214,6 +214,30 @@ RSpec.describe GameTurn do
         is_expected.to start_with("CAST 78") # eq("LEARN 15")
       end
     end
+
+    context "when rushing [0, 0, 0, 1] is the best move" do
+      let(:actions) do
+        {
+          6 => ["LEARN", 2, 1, -2, 1, 0, 0],
+          36 => ["LEARN", 0, -3, 3, 0, 1, 0],
+          35 => ["LEARN", 0, 0, -3, 3, 2, 0],
+          19 => ["LEARN", 0, 2, -1, 0, 3, 0],
+          14 => ["LEARN", 0, 0, 0, 1, 4, 0], # our baby
+          1 => ["LEARN", 3, -1, 0, 0, 5, 0],
+          78 => ["CAST", 2, 0, 0, 0, true, false],
+          79 => ["CAST", -1, 1, 0, 0, true, false],
+          80 => ["CAST", 0, -1, 1, 0, true, false],
+          81 => ["CAST", 0, 0, -1, 1, true, false],
+          85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+        }
+      end
+
+      let(:me) { [3, 0, 0, 0, 0, 1, ""] }
+
+      it "returns the first step in the road to snagging spell 14" do
+        is_expected.to start_with("CAST 78") # followed by rest and another "CAST 78"
+      end
+    end
   end
 
   describe "array vs hash dup" do
