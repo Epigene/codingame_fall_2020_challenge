@@ -13,12 +13,12 @@ RSpec.describe GameSimulator do
       let(:position) do
         {
           actions: {
-            8 => {type:"LEARN", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-            24 => {type:"LEARN", delta0: 0, delta1:3, delta2:0, delta3:-1, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
-            0 => {type:"LEARN", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>2, :tax_count=>0, :castable=>false, :repeatable=>true},
-            18 => {type:"LEARN", delta0: -1, delta1:-1, delta2:0, delta3:1, price: 0, :tome_index=>3, :tax_count=>0, :castable=>false, :repeatable=>true},
-            21 => {type:"LEARN", delta0: -3, delta1:1, delta2:1, delta3:0, price: 0, :tome_index=>4, :tax_count=>0, :castable=>false, :repeatable=>true},
-            4 => {type:"LEARN", delta0: 3, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>5, :tax_count=>0, :castable=>false, :repeatable=>false},
+            8 => ["LEARN", 3, -2, 1, 0, 0, 0],
+            24 => ["LEARN", 0, 3, 0, -1, 1, 0],
+            0 => ["LEARN", -3, 0, 0, 1, 2, 0],
+            18 => ["LEARN", -1, -1, 0, 1, 3, 0],
+            21 => ["LEARN", -3, 1, 1, 0, 4, 0],
+            4 => ["LEARN", 3, 0, 0, 0, 5, 0],
             78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
@@ -35,11 +35,11 @@ RSpec.describe GameSimulator do
       let(:outcome) do
         {
           actions: {
-            24 => {type:"LEARN", delta0: 0, delta1:3, delta2:0, delta3:-1, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-            0 => {type:"LEARN", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
-            18 => {type:"LEARN", delta0: -1, delta1:-1, delta2:0, delta3:1, price: 0, :tome_index=>2, :tax_count=>0, :castable=>false, :repeatable=>true},
-            21 => {type:"LEARN", delta0: -3, delta1:1, delta2:1, delta3:0, price: 0, :tome_index=>3, :tax_count=>0, :castable=>false, :repeatable=>true},
-            4 => {type:"LEARN", delta0: 3, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>4, :tax_count=>0, :castable=>false, :repeatable=>false},
+            24 => ["LEARN", 0, 3, 0, -1, 0, 0],
+            0 => ["LEARN", -3, 0, 0, 1, 1, 0],
+            18 => ["LEARN", -1, -1, 0, 1, 2, 0],
+            21 => ["LEARN", -3, 1, 1, 0, 3, 0],
+            4 => ["LEARN", 3, 0, 0, 0, 4, 0],
             78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
@@ -48,7 +48,7 @@ RSpec.describe GameSimulator do
             83 => {type:"OPPONENT_CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             84 => {type:"OPPONENT_CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-            86 => {type:"CAST", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true}
+            86 => described_class::LEARNED_SPELL_DATA[8]
           },
           me: [3, 0, 0, 0, 0, 2, move]
         }
@@ -65,19 +65,15 @@ RSpec.describe GameSimulator do
       let(:position) do
         {
           actions: {
-            24 => {type:"LEARN", delta0: 0, delta1:3, delta2:0, delta3:-1, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-            0 => {type:"LEARN", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
-            18 => {type:"LEARN", delta0: -1, delta1:-1, delta2:0, delta3:1, price: 0, :tome_index=>2, :tax_count=>0, :castable=>false, :repeatable=>true},
-            21 => {type:"LEARN", delta0: -3, delta1:1, delta2:1, delta3:0, price: 0, :tome_index=>3, :tax_count=>0, :castable=>false, :repeatable=>true},
+            24 => ["LEARN", 0, 3, 0, -1, 0, 0],
+            0 => ["LEARN", -3, 0, 0, 1, 1, 0],
+            18 => ["LEARN", -1, -1, 0, 1, 2, 0],
+            21 => ["LEARN", -3, 1, 1, 0, 3, 0],
             78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             81 => {type:"CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             86 => {type:"CAST", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
-            82 => {type:"OPPONENT_CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-            83 => {type:"OPPONENT_CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-            84 => {type:"OPPONENT_CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-            85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             87 => {type:"OPPONENT_CAST", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
           },
           me: [2, 0, 0, 0, 0, 2, ""]
@@ -87,18 +83,14 @@ RSpec.describe GameSimulator do
       let(:outcome) do
         {
           actions: {
-            24 => {type:"LEARN", delta0: 0, delta1:3, delta2:0, delta3:-1, price: 0, :tome_index=>0, :tax_count=>1, :castable=>false, :repeatable=>true},
-            18 => {type:"LEARN", delta0: -1, delta1:-1, delta2:0, delta3:1, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
-            21 => {type:"LEARN", delta0: -3, delta1:1, delta2:1, delta3:0, price: 0, :tome_index=>2, :tax_count=>0, :castable=>false, :repeatable=>true},
+            24 => ["LEARN", 0, 3, 0, -1, 0, 1],
+            18 => ["LEARN", -1, -1, 0, 1, 1, 0],
+            21 => ["LEARN", -3, 1, 1, 0, 2, 0],
             78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             81 => {type:"CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             86 => {type:"CAST", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
-            82 => {type:"OPPONENT_CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-            83 => {type:"OPPONENT_CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-            84 => {type:"OPPONENT_CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-            85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             87 => {type:"OPPONENT_CAST", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
             88 => described_class::LEARNED_SPELL_DATA[0]
           },
@@ -117,8 +109,8 @@ RSpec.describe GameSimulator do
       let(:position) do
         {
           actions: {
-            24 => {type:"LEARN", delta0: 0, delta1:3, delta2:0, delta3:-1, price: 0, :tome_index=>0, :tax_count=>1, :castable=>false, :repeatable=>true},
-            0 => {type:"LEARN", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
+            24 => ["LEARN",  0, 3, 0, -1, 0, 1],
+            0 => ["LEARN",  -3, 0, 0, 1, 1, 0],
             78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
@@ -132,7 +124,7 @@ RSpec.describe GameSimulator do
       let(:outcome) do
         {
           actions: {
-            0 => {type:"LEARN", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
+            0 => ["LEARN", -3, 0, 0, 1, 0, 0],
             78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
@@ -309,12 +301,13 @@ RSpec.describe GameSimulator do
       let(:position) do
         {
           actions: {
-            8 => {type:"LEARN", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-            24 => {type:"LEARN", delta0: 0, delta1:3, delta2:0, delta3:-1, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
-            0 => {type:"LEARN", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>2, :tax_count=>0, :castable=>false, :repeatable=>true},
-            18 => {type:"LEARN", delta0: -1, delta1:-1, delta2:0, delta3:1, price: 0, :tome_index=>3, :tax_count=>0, :castable=>false, :repeatable=>true},
-            21 => {type:"LEARN", delta0: -3, delta1:1, delta2:1, delta3:0, price: 0, :tome_index=>4, :tax_count=>0, :castable=>false, :repeatable=>true},
-            4 => {type:"LEARN", delta0: 3, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>5, :tax_count=>0, :castable=>false, :repeatable=>false},
+            8 => ["LEARN", 3, -2, 1, 0, 0, 0],
+            24 => ["LEARN", 0, 3, 0, -1, 1, 0],
+            0 => ["LEARN", -3, 0, 0, 1, 2, 0],
+            18 => ["LEARN", -1, -1, 0, 1, 3, 0],
+            21 => ["LEARN", -3, 1, 1, 0, 4, 0],
+            4 => ["LEARN", 3, 0, 0, 0, 5, 0],
+
             78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
@@ -323,7 +316,9 @@ RSpec.describe GameSimulator do
       end
 
       it "raises a descriptive error" do
-        expect{ subject }.to raise_error(RuntimeError, %r'insufficient aqua for learning tax!')
+        expect{ subject }.to raise_error(
+          RuntimeError, %r'insufficient aqua for learning tax!'
+        )
       end
     end
 
@@ -564,7 +559,7 @@ RSpec.describe GameSimulator do
             # 0 => {type:"LEARN", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>2, :tax_count=>0, :castable=>false, :repeatable=>true},
             # 18 => {type:"LEARN", delta0: -1, delta1:-1, delta2:0, delta3:1, price: 0, :tome_index=>3, :tax_count=>0, :castable=>false, :repeatable=>true},
             # 21 => {type:"LEARN", delta0: -3, delta1:1, delta2:1, delta3:0, price: 0, :tome_index=>4, :tax_count=>0, :castable=>false, :repeatable=>true},
-            14 => {type:"LEARN", delta0: 0, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>5, :tax_count=>0, :castable=>false, :repeatable=>false},
+            14 => ["LEARN", 0, 0, 0, 1, 5, 0],
 
             78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},

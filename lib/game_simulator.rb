@@ -56,48 +56,48 @@ class GameSimulator
   }.freeze
 
   LEARNED_SPELL_DATA = {
-    2 => {type:"CAST",:repeatable=>false, :delta0=>1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    3 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:0, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    4 => {type:"CAST",:repeatable=>false, :delta0=>3, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    12 => {type:"CAST",:repeatable=>false, :delta0=>2, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    13 => {type:"CAST",:repeatable=>false, :delta0=>4, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    14 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    15 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:2, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    16 => {type:"CAST",:repeatable=>false, :delta0=>1, delta1:0, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    18 => {type:"CAST",:repeatable=>true, :delta0=>-1, delta1:-1, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    17 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:0, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    38 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:2, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    39 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:-2, delta3:2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    40 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:-2, delta2:2, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    30 => {type:"CAST",:repeatable=>true, :delta0=>-4, delta1:0, delta2:1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    34 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:0, delta2:-1, delta3:2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    0 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    1 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:-1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    5 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:3, delta2:-2, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    6 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:1, delta2:-2, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    7 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:0, delta2:1, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    8 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    9 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:-3, delta2:2, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    10 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:2, delta2:0, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    11 => {type:"CAST",:repeatable=>true, :delta0=>-4, delta1:0, delta2:2, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    19 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:2, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    20 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:-2, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    21 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    22 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:2, delta2:-2, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    23 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:-3, delta2:1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    24 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:3, delta2:0, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    25 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:-3, delta2:0, delta3:2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    26 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:1, delta2:1, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    27 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:2, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    28 => {type:"CAST",:repeatable=>true, :delta0=>4, delta1:1, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    31 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:3, delta2:2, delta3:-2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    32 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:1, delta2:3, delta3:-2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    35 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:-3, delta3:3, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    36 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:-3, delta2:3, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    37 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:3, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    33 => {type:"CAST",:repeatable=>true, :delta0=>-5, delta1:0, delta2:3, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    29 => {type:"CAST",:repeatable=>true, :delta0=>-5, delta1:0, delta2:0, delta3:2, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
-    41 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:2, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true},
+    2 => {type:"CAST",:repeatable=>false, :delta0=>1, delta1:1, delta2:0, delta3:0, :castable=>true},
+    3 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:0, delta2:1, delta3:0, :castable=>true},
+    4 => {type:"CAST",:repeatable=>false, :delta0=>3, delta1:0, delta2:0, delta3:0, :castable=>true},
+    12 => {type:"CAST",:repeatable=>false, :delta0=>2, delta1:1, delta2:0, delta3:0, :castable=>true},
+    13 => {type:"CAST",:repeatable=>false, :delta0=>4, delta1:0, delta2:0, delta3:0, :castable=>true},
+    14 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:0, delta2:0, delta3:1, :castable=>true},
+    15 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:2, delta2:0, delta3:0, :castable=>true},
+    16 => {type:"CAST",:repeatable=>false, :delta0=>1, delta1:0, delta2:1, delta3:0, :castable=>true},
+    18 => {type:"CAST",:repeatable=>true, :delta0=>-1, delta1:-1, delta2:0, delta3:1, :castable=>true},
+    17 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:0, delta2:1, delta3:0, :castable=>true},
+    38 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:2, delta2:0, delta3:0, :castable=>true},
+    39 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:-2, delta3:2, :castable=>true},
+    40 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:-2, delta2:2, delta3:0, :castable=>true},
+    30 => {type:"CAST",:repeatable=>true, :delta0=>-4, delta1:0, delta2:1, delta3:1, :castable=>true},
+    34 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:0, delta2:-1, delta3:2, :castable=>true},
+    0 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:0, delta2:0, delta3:1, :castable=>true},
+    1 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:-1, delta2:0, delta3:0, :castable=>true},
+    5 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:3, delta2:-2, delta3:0, :castable=>true},
+    6 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:1, delta2:-2, delta3:1, :castable=>true},
+    7 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:0, delta2:1, delta3:-1, :castable=>true},
+    8 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:-2, delta2:1, delta3:0, :castable=>true},
+    9 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:-3, delta2:2, delta3:0, :castable=>true},
+    10 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:2, delta2:0, delta3:-1, :castable=>true},
+    11 => {type:"CAST",:repeatable=>true, :delta0=>-4, delta1:0, delta2:2, delta3:0, :castable=>true},
+    19 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:2, delta2:-1, delta3:0, :castable=>true},
+    20 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:-2, delta2:0, delta3:1, :castable=>true},
+    21 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:1, delta2:1, delta3:0, :castable=>true},
+    22 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:2, delta2:-2, delta3:1, :castable=>true},
+    23 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:-3, delta2:1, delta3:1, :castable=>true},
+    24 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:3, delta2:0, delta3:-1, :castable=>true},
+    25 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:-3, delta2:0, delta3:2, :castable=>true},
+    26 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:1, delta2:1, delta3:-1, :castable=>true},
+    27 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:2, delta2:-1, delta3:0, :castable=>true},
+    28 => {type:"CAST",:repeatable=>true, :delta0=>4, delta1:1, delta2:-1, delta3:0, :castable=>true},
+    31 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:3, delta2:2, delta3:-2, :castable=>true},
+    32 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:1, delta2:3, delta3:-2, :castable=>true},
+    35 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:-3, delta3:3, :castable=>true},
+    36 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:-3, delta2:3, delta3:0, :castable=>true},
+    37 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:3, delta2:0, delta3:0, :castable=>true},
+    33 => {type:"CAST",:repeatable=>true, :delta0=>-5, delta1:0, delta2:3, delta3:0, :castable=>true},
+    29 => {type:"CAST",:repeatable=>true, :delta0=>-5, delta1:0, delta2:0, delta3:2, :castable=>true},
+    41 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:2, delta3:-1, :castable=>true},
   }
 
   POTIONS = {
@@ -180,7 +180,7 @@ class GameSimulator
     when "LEARN"
       id = portions[1].to_i
       learned_spell = position[:actions][id]
-      learn_index = learned_spell[:tome_index]
+      learn_index = learned_spell[5]
 
       if learn_index > position[:me][0]
         raise SimulatorError.new("insufficient aqua for learning tax!")
@@ -205,12 +205,12 @@ class GameSimulator
 
       p[:actions].transform_values! do |v|
         if action_type(v) == "LEARN"
-          if v[:tome_index] > learn_index
-            v[:tome_index] -= 1
+          if v[5] > learn_index
+            v[5] -= 1
           end
 
-          if v[:tome_index] < learn_index
-            v[:tax_count] += 1
+          if v[5] < learn_index
+            v[6] += 1
           end
 
           v
@@ -223,7 +223,7 @@ class GameSimulator
       p[:me][5] += 1
       p[:me][6] = move
       p[:me][0] -= learn_index
-      p[:me][0] += learned_spell[:tax_count] if learned_spell[:tax_count].positive?
+      p[:me][0] += learned_spell[6] if learned_spell[6].positive?
 
       p
     when "CAST"
