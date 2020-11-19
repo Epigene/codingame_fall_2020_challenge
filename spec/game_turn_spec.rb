@@ -24,7 +24,7 @@ RSpec.describe GameTurn do
       end
 
       context "when I have enough ingredients for the most lucrative potion" do
-        let(:me) { {inv: [2, 2, 3, 3]} }
+        let(:me) { [2, 2, 3, 3] }
 
         it "moves to brew the best potion" do
           is_expected.to include("BREW 61")
@@ -32,7 +32,7 @@ RSpec.describe GameTurn do
       end
 
       context "when I dont have enough resources for the most lucrative potion, but do for the second" do
-        let(:me) { {inv: [2, 2, 3, 1]} }
+        let(:me) { [2, 2, 3, 1] }
 
         it "moves to brew the second best" do
           is_expected.to include("BREW 54")
@@ -41,12 +41,12 @@ RSpec.describe GameTurn do
     end
 
     context "when there's spells to learn, but they're all degenerators" do
-      let(:me) { {inv: [3, 2, 0, 0], turn: 3} }
+      let(:me) { [3, 2, 0, 0, 3] }
 
       let(:actions) do
         {
-          11 => {type:"LEARN", delta0: 2, delta1:2, delta2:-1, delta3:0, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-          10 => {type:"LEARN", delta0: 4, delta1:-1, delta2:0, delta3:0, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true},
+          11 => ["LEARN", 2, 2, -1, 0, 0, 0],
+          10 => ["LEARN", 4, -1, 0, 0, 1, 0],
           44 => {type: "BREW", delta0: 0, delta1:-2, delta2:0, delta3:0, :price=>8},
         }
       end
@@ -59,12 +59,12 @@ RSpec.describe GameTurn do
     end
 
     context "when there's pure giver spell to learn and it's early in the game" do
-      let(:me) { {inv: [3, 2, 0, 0], turn: 3} }
+      let(:me) { [3, 2, 0, 0, 3] }
 
       let(:actions) do
         {
-          11 => {type:"LEARN", delta0: 0, delta1:-2, delta2:2, delta3:0, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-          10 => {type:"LEARN", delta0: 2, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true}
+          11 => ["LEARN", 0, -2, 2, 0, 0, 0],
+          10 => ["LEARN", 2, 1, 0, 0, 1, 0]
         }
       end
 
@@ -74,12 +74,12 @@ RSpec.describe GameTurn do
     end
 
     context "when there's a regular transmuter to learn and it's early in the game" do
-      let(:me) { {inv: [3, 2, 0, 0], turn: 3} }
+      let(:me) { [3, 2, 0, 0, 3] }
 
       let(:actions) do
         {
-          11 => {type:"LEARN", delta0: 0, delta1:-2, delta2:2, delta3:0, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
-          10 => {type:"LEARN", delta0: 3, delta1:-2, delta2:0, delta3:0, price: 0, :tome_index=>1, :tax_count=>0, :castable=>false, :repeatable=>true}
+          11 => ["LEARN", 0, -2, 2, 0, 0, 0],
+          10 => ["LEARN", 3, -2, 0, 0, 1, 0]
         }
       end
 
@@ -93,14 +93,14 @@ RSpec.describe GameTurn do
         {
           76 => {type:"BREW", delta0: -1, delta1:-1, delta2:-3, delta3:-1, :price=>18, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
           70 => {type:"BREW", delta0: -1, delta1:-1, delta2:0, delta3:-1, :price=>15, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
-          1 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          2 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          3 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          4 => {type:"CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+          1 => ["CAST", 2, 0, 0, 0, true, false],
+          2 => ["CAST", -1, 1, 0, 0, true, false],
+          3 => ["CAST", 0, -1, 1, 0, true, false],
+          4 => ["CAST", 0, 0, -1, 1, true, false]
         }
       end
 
-      let(:me) { {inv: [3, 0, 0, 0], turn: 51} }
+      let(:me) { [3, 0, 0, 0, 51] }
 
       it "returns the move to transmute to green" do
         is_expected.to include("CAST 2")
@@ -108,7 +108,7 @@ RSpec.describe GameTurn do
     end
 
     context "when I've just made a green one and should just rest to get another" do
-      let(:me) { {inv: [2, 1, 1, 1], turn: 51} }
+      let(:me) { [2, 1, 1, 1, 51] }
 
       let(:actions) do
         {
@@ -117,10 +117,10 @@ RSpec.describe GameTurn do
           70 => {type:"BREW", delta0: -2, delta1:-2, delta2:0, delta3:-2, :price=>15, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
           67 => {type:"BREW", delta0: 0, delta1:-2, delta2:-1, delta3:-1, :price=>12, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
           77 => {type:"BREW", delta0: -1, delta1:-1, delta2:-1, delta3:-3, :price=>20, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
-          78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
-          80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          81 => {type:"CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+          78 => ["CAST", 2, 0, 0, 0, true, false],
+          79 => ["CAST", -1, 1, 0, 0, false, false],
+          80 => ["CAST", 0, -1, 1, 0, true, false],
+          81 => ["CAST", 0, 0, -1, 1, true, false]
         }
       end
 
@@ -130,13 +130,13 @@ RSpec.describe GameTurn do
     end
 
     context "when we've a bunch of spells" do
-      let(:me) { {inv: [6, 2, 1, 0], turn: 51} } # total of 9
+      let(:me) { [6, 2, 1, 0, 51] } # total of 9
 
       let(:actions) do
         {
-          79 => {type:"CAST", delta0: 4, delta1:1, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          2 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          3 => {type:"CAST", delta0: 0, delta1:2, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          79 => ["CAST", 4, 1, -1, 0, -1, true, false],
+          2 => ["CAST", -1, 1, 0, 0, -1, true, false],
+          3 => ["CAST", 0, 2, -1, 0, -1, true, false],
           44 => {type:"BREW", delta0: 0, delta1:-5, delta2:0, delta3:0, :price=>15, :tome_index=>-1, :tax_count=>0, :castable=>false, :repeatable=>false},
         }
       end
@@ -167,7 +167,7 @@ RSpec.describe GameTurn do
           56 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-3, :delta3=>0, :price=>13, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
           51 => {:type=>"BREW", :delta0=>-2, :delta1=>0, :delta2=>-3, :delta3=>0, :price=>11, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
 
-          # [typpe, (1..4)inv, 5=tome_index, 6=tax_bonus]
+          # [type, (1..4)inv, 5=tome_index, 6=tax_bonus]
           36 => ["LEARN", 0, -3, 3, 0, 0, 0],
           31 => ["LEARN", 0, 3, 2, -2, 1, 0],
           34 => ["LEARN", -2, 0, -1, 2, 2, 0],
@@ -175,10 +175,16 @@ RSpec.describe GameTurn do
           1 => ["LEARN", 3, -1, 0, 0, 4, 0],
           22 => ["LEARN", 0, 2, -2, 1, 5, 0],
 
-          78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          81 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          # 78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          # 79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          # 80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          # 81 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+
+          # [type, (1..4)inv, 5=castable, 6=repeatable]
+          78 => ["CAST", 2, 0, 0, 0, true, false],
+          79 => ["CAST", -1, 1, 0, 0, true, false],
+          80 => ["CAST", 0, -1, 1, 0, true, false],
+          81 => ["CAST", 0, 0, -1, 1, true, false]
         }
       end
 
@@ -198,7 +204,7 @@ RSpec.describe GameTurn do
     end
 
     it "compares time it takes to dup array vs a hash 40k times" do
-      hash = {type:"CAST", delta0: 4, delta1:1, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
+      hash = {type:"MEHH", delta0: 4, delta1:1, delta2:-1, delta3:0, price: 0, :tt=>-1, :tx=>-1, :cc=>true, :repeatable=>false}
       array = ["CAST", 4, 1, -1, 0, 0, -1, -1, true, false]
 
       array_time = Benchmark.realtime do
@@ -246,20 +252,20 @@ RSpec.describe GameTurn do
 
     let(:actions) do
       {
-        1 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, :castable=>true, :repeatable=>false},
-        2 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, :castable=>true, :repeatable=>false},
-        3 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, :castable=>true, :repeatable=>false},
-        4 => {type:"CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, :castable=>true, :repeatable=>false}
+        1 => ["CAST",  2, 0, 0, 0, true, false],
+        2 => ["CAST",  -1, 1, 0, 0, true, false],
+        3 => ["CAST",  0, -1, 1, 0, true, false],
+        4 => ["CAST",  0, 0, -1, 1, true, false]
       }
     end
 
-    let(:me) { {inv: []} }
+    let(:me) { [] }
 
     context "when lacking a yellow" do
       let(:target_inventory) { [0, 0, 0, 1] }
 
       context "when spell is available and orange is available" do
-        let(:me) { {inv: [0, 0, 1, 0]} }
+        let(:me) { [0, 0, 1, 0] }
 
         it "returns the move to cast orange->yellow spell" do
           is_expected.to include("CAST 4")
@@ -269,12 +275,12 @@ RSpec.describe GameTurn do
       context "when I know several spells to transmute to yellow" do
         let(:actions) do
           s = super()
-          s[4][:castable] = false
-          s[5] = {type:"CAST", delta0: 0, delta1:-1, delta2:0, delta3:1, :castable=>true, :repeatable=>false}
+          s[4][5] = false
+          s[5] = ["CAST", 0, -1, 0, 1, true, false]
           s
         end
 
-        let(:me) { {inv: [0, 1, 0, 0]} }
+        let(:me) { [0, 1, 0, 0] }
 
         it "returns the move to cast the available spell" do
           is_expected.to include("CAST 5")
@@ -282,9 +288,9 @@ RSpec.describe GameTurn do
       end
 
       context "when yellow can not be created due to orange missing but orange can be created" do
-        let(:me) { {inv: [0, 1, 0, 0]} }
+        let(:me) { [0, 1, 0, 0] }
 
-        let(:actions) { super().tap{ |a| a[4][:castable] = false } }
+        let(:actions) { super().tap{ |a| a[4][5] = false } }
 
         it "returns the move to cast green->orange spell" do
           is_expected.to include("CAST 3")
@@ -292,7 +298,7 @@ RSpec.describe GameTurn do
       end
 
       context "when yellow can not be created due to orange missing and green missing, but green can be made" do
-        let(:me) { {inv: [1, 0, 0, 0]} }
+        let(:me) { [1, 0, 0, 0] }
 
         it "returns the move to cast blue->green spell" do
           is_expected.to include("CAST 2")
@@ -300,7 +306,7 @@ RSpec.describe GameTurn do
       end
 
       context "when yellow can not be created due to everything missing" do
-        let(:me) { {inv: [0, 0, 0, 0]} }
+        let(:me) { [0, 0, 0, 0] }
 
         it "returns the move to cast blue++" do
           is_expected.to include("CAST 1")
@@ -308,8 +314,8 @@ RSpec.describe GameTurn do
       end
 
       context "when nothing can be cast" do
-        let(:actions) { super().tap{ |s| s[1][:castable] = false } }
-        let(:me) { {inv: [0, 0, 0, 0]} }
+        let(:actions) { super().tap{ |s| s[1][5] = false } }
+        let(:me) { [0, 0, 0, 0] }
 
         it "returns the move to REST" do
           is_expected.to include("REST")
@@ -321,44 +327,44 @@ RSpec.describe GameTurn do
   describe "#i_can_cast?(spell)" do
     subject(:i_can_cast?) { instance.send(:i_can_cast?, spell) }
 
-    let(:spell) { {delta0: -1, delta1:1, delta2:0, delta3:0, :castable=>true} }
+    let(:spell) { ["CAST", -1, 1, 0, 0, true] }
 
     context "when the spell would overfill inventory" do
-      let(:spell) { {delta0: 1, delta1:0, delta2:0, delta3:0, :castable=>true} }
-      let(:me) { {inv: [4, 3, 2, 1]} }
+      let(:spell) { ["CAST", 1, 0, 0, 0, true] }
+      let(:me) { [4, 3, 2, 1] }
 
       it { is_expected.to be(false) }
     end
 
     context "when the spell transmutes and would overfill inventory" do
-      let(:spell) { {delta0: 2, delta1:2, delta2:-1, delta3:0, :castable=>true} }
-      let(:me) { {inv: [1, 1, 1, 5]} }
+      let(:spell) { ["CAST", 2, 2, -1, 0, true] }
+      let(:me) { [1, 1, 1, 5] }
 
       it { is_expected.to be(false) }
     end
 
     context "when the spell requires no ingredients" do
-      let(:spell) { {delta0: 2, delta1:0, delta2:0, delta3:0, :castable=>true} }
-      let(:me) { {inv: [0, 0, 0, 0]} }
+      let(:spell) { ["CAST", 2, 0, 0, 0, true] }
+      let(:me) { [0, 0, 0, 0] }
 
       it { is_expected.to be(true) }
     end
 
     context "when I have ingredients to cast" do
-      let(:me) { {inv: [1, 0, 0, 0]} }
+      let(:me) { [1, 0, 0, 0] }
 
       it { is_expected.to be(true) }
     end
 
     context "when I have complex ingredients to cast" do
-      let(:spell) { {delta0: -1, delta1:-2, delta2:-3, delta3:4, :castable=>true} }
-      let(:me) { {inv: [2, 3, 4, 1]} }
+      let(:spell) { ["CAST", -1, -2, -3, 4, true, true] }
+      let(:me) { [2, 3, 4, 1] }
 
       it { is_expected.to be(true) }
     end
 
-    context "when I dont have ingredients to cast" do
-      let(:me) { {inv: [0, 1, 1, 1]} }
+    context "when I don't have ingredients to cast" do
+      let(:me) { [0, 1, 1, 1] }
 
       it { is_expected.to be(false) }
     end

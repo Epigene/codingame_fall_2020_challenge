@@ -153,44 +153,44 @@ class GameTurn
     def spell_to_learn_id
       return @spell_to_learn_id if defined?(@spell_to_learn_id)
 
-      return @spell_to_learn_id = nil if me[:turn] > 15
+      return @spell_to_learn_id = nil if me[4] > 15
 
       # first pass, looking over up to fourth slot for pure giver spells
       spell_to_learn =
         tomes.find do |id, spell|
-          spell[:tome_index] == 0 && pure_giver_spell?(spell)
+          spell[5] == 0 && pure_giver_spell?(spell)
         end
 
       spell_to_learn ||=
         tomes.find do |id, spell|
-          spell[:tome_index] == 1 && pure_giver_spell?(spell) && me[:inv][0] >= 1
+          spell[5] == 1 && pure_giver_spell?(spell) && me[0..3][0] >= 1
         end
 
       spell_to_learn ||=
         tomes.find do |id, spell|
-          spell[:tome_index] == 2 && pure_giver_spell?(spell) && me[:inv][0] >= 2
+          spell[5] == 2 && pure_giver_spell?(spell) && me[0..3][0] >= 2
         end
 
       spell_to_learn ||=
         tomes.find do |id, spell|
-          spell[:tome_index] == 3 && pure_giver_spell?(spell) && me[:inv][0] >= 3
+          spell[5] == 3 && pure_giver_spell?(spell) && me[0..3][0] >= 3
         end
 
       # first candidate is free
       spell_to_learn ||=
         tomes.find do |id, spell|
-          spell[:tome_index] == 0 && !degeneration_spell?(spell)
+          spell[5] == 0 && !degeneration_spell?(spell)
         end
 
       # but subsequent need to consider tax
       spell_to_learn ||=
         tomes.find do |id, spell|
-          spell[:tome_index] == 1 && !degeneration_spell?(spell) && me[:inv][0] >= 1
+          spell[5] == 1 && !degeneration_spell?(spell) && me[0..3][0] >= 1
         end
 
       spell_to_learn ||=
         tomes.find do |id, spell|
-          spell[:tome_index] == 2 && !degeneration_spell?(spell) && me[:inv][0] >= 2
+          spell[5] == 2 && !degeneration_spell?(spell) && me[0..3][0] >= 2
         end
 
       return @spell_to_learn_id = nil if spell_to_learn.nil?
@@ -214,11 +214,11 @@ class GameTurn
     # @target_inventory [Array] # [1, 2, 3, 4]
     # @return [String]
     def next_step_towards(target_inventory)
-      whats_missing = inventory_delta(me[:inv], target_inventory)
+      whats_missing = inventory_delta(me[0..3], target_inventory)
 
       if whats_missing[3] > 0
         spells_for_getting_yellow =
-          my_spells.select{ |id, spell| spell[:delta3].positive? && spell[:castable] }
+          my_spells.select{ |id, spell| spell[4].positive? && spell[5] }
 
         castable_spell =
           spells_for_getting_yellow.find do |id, spell|
@@ -228,9 +228,9 @@ class GameTurn
         return "CAST #{ castable_spell[0] } Yello for #{ target_inventory }" if castable_spell
       end
 
-      if whats_missing[2] > 0 || (whats_missing[3] > 0 && me[:inv][2] == 0)
+      if whats_missing[2] > 0 || (whats_missing[3] > 0 && me[0..3][2] == 0)
         spells_for_getting_orange =
-          my_spells.select{ |id, spell| spell[:delta2].positive? && spell[:castable] }
+          my_spells.select{ |id, spell| spell[3].positive? && spell[5] }
 
         castable_spell =
           spells_for_getting_orange.find do |id, spell|
@@ -240,9 +240,9 @@ class GameTurn
         return "CAST #{ castable_spell[0] } Oranges for #{ target_inventory }" if castable_spell
       end
 
-      if whats_missing[1] > 0 || ((whats_missing[2] > 0 || whats_missing[3] > 0) && me[:inv][1] == 0)
+      if whats_missing[1] > 0 || ((whats_missing[2] > 0 || whats_missing[3] > 0) && me[0..3][1] == 0)
         spells_for_getting_green =
-          my_spells.select{ |id, spell| spell[:delta1].positive? && spell[:castable] }
+          my_spells.select{ |id, spell| spell[2].positive? && spell[5] }
 
         castable_spell =
           spells_for_getting_green.find do |id, spell|
@@ -252,9 +252,9 @@ class GameTurn
         return "CAST #{ castable_spell[0] } Goo for #{ target_inventory }" if castable_spell
       end
 
-      if (whats_missing[0] > 0 || (whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0) && me[:inv][0] == 0)
+      if (whats_missing[0] > 0 || (whats_missing[1] > 0 || whats_missing[2] > 0 || whats_missing[3] > 0) && me[0..3][0] == 0)
         spells_for_getting_blue =
-          my_spells.select{ |id, spell| spell[:delta0].positive? && spell[:castable] }
+          my_spells.select{ |id, spell| spell[1].positive? && spell[5] }
 
         castable_spell =
           spells_for_getting_blue.find do |id, spell|
@@ -270,10 +270,10 @@ class GameTurn
     # @spell [Hash] # {:delta0=>0, delta1:-1, delta2:0, delta3:1, :castable=>true}
     # @return [Boolean]
     def i_can_cast?(spell)
-      return false unless spell[:castable]
+      return false unless spell[5]
 
       GameSimulator.the_instance.can_cast?(
-        operation: deltas(spell), from: me[:inv]
+        operation: deltas(spell), from: me[0..3]
       )[:can]
     end
 
@@ -298,7 +298,7 @@ class GameTurn
 
       problems =
         (0..3).to_a.map do |i|
-          next if (me[:inv][i] + deltas[i]) >= 0
+          next if (me[0..3][i] + deltas[i]) >= 0
 
           i
         end

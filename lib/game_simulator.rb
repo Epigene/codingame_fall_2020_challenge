@@ -56,49 +56,49 @@ class GameSimulator
   }.freeze
 
   LEARNED_SPELL_DATA = {
-    2 => {type:"CAST",:repeatable=>false, :delta0=>1, delta1:1, delta2:0, delta3:0, :castable=>true},
-    3 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:0, delta2:1, delta3:0, :castable=>true},
-    4 => {type:"CAST",:repeatable=>false, :delta0=>3, delta1:0, delta2:0, delta3:0, :castable=>true},
-    12 => {type:"CAST",:repeatable=>false, :delta0=>2, delta1:1, delta2:0, delta3:0, :castable=>true},
-    13 => {type:"CAST",:repeatable=>false, :delta0=>4, delta1:0, delta2:0, delta3:0, :castable=>true},
-    14 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:0, delta2:0, delta3:1, :castable=>true},
-    15 => {type:"CAST",:repeatable=>false, :delta0=>0, delta1:2, delta2:0, delta3:0, :castable=>true},
-    16 => {type:"CAST",:repeatable=>false, :delta0=>1, delta1:0, delta2:1, delta3:0, :castable=>true},
-    18 => {type:"CAST",:repeatable=>true, :delta0=>-1, delta1:-1, delta2:0, delta3:1, :castable=>true},
-    17 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:0, delta2:1, delta3:0, :castable=>true},
-    38 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:2, delta2:0, delta3:0, :castable=>true},
-    39 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:-2, delta3:2, :castable=>true},
-    40 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:-2, delta2:2, delta3:0, :castable=>true},
-    30 => {type:"CAST",:repeatable=>true, :delta0=>-4, delta1:0, delta2:1, delta3:1, :castable=>true},
-    34 => {type:"CAST",:repeatable=>true, :delta0=>-2, delta1:0, delta2:-1, delta3:2, :castable=>true},
-    0 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:0, delta2:0, delta3:1, :castable=>true},
-    1 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:-1, delta2:0, delta3:0, :castable=>true},
-    5 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:3, delta2:-2, delta3:0, :castable=>true},
-    6 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:1, delta2:-2, delta3:1, :castable=>true},
-    7 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:0, delta2:1, delta3:-1, :castable=>true},
-    8 => {type:"CAST",:repeatable=>true, :delta0=>3, delta1:-2, delta2:1, delta3:0, :castable=>true},
-    9 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:-3, delta2:2, delta3:0, :castable=>true},
-    10 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:2, delta2:0, delta3:-1, :castable=>true},
-    11 => {type:"CAST",:repeatable=>true, :delta0=>-4, delta1:0, delta2:2, delta3:0, :castable=>true},
-    19 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:2, delta2:-1, delta3:0, :castable=>true},
-    20 => {type:"CAST",:repeatable=>true, :delta0=>2, delta1:-2, delta2:0, delta3:1, :castable=>true},
-    21 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:1, delta2:1, delta3:0, :castable=>true},
-    22 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:2, delta2:-2, delta3:1, :castable=>true},
-    23 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:-3, delta2:1, delta3:1, :castable=>true},
-    24 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:3, delta2:0, delta3:-1, :castable=>true},
-    25 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:-3, delta2:0, delta3:2, :castable=>true},
-    26 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:1, delta2:1, delta3:-1, :castable=>true},
-    27 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:2, delta2:-1, delta3:0, :castable=>true},
-    28 => {type:"CAST",:repeatable=>true, :delta0=>4, delta1:1, delta2:-1, delta3:0, :castable=>true},
-    31 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:3, delta2:2, delta3:-2, :castable=>true},
-    32 => {type:"CAST",:repeatable=>true, :delta0=>1, delta1:1, delta2:3, delta3:-2, :castable=>true},
-    35 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:-3, delta3:3, :castable=>true},
-    36 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:-3, delta2:3, delta3:0, :castable=>true},
-    37 => {type:"CAST",:repeatable=>true, :delta0=>-3, delta1:3, delta2:0, delta3:0, :castable=>true},
-    33 => {type:"CAST",:repeatable=>true, :delta0=>-5, delta1:0, delta2:3, delta3:0, :castable=>true},
-    29 => {type:"CAST",:repeatable=>true, :delta0=>-5, delta1:0, delta2:0, delta3:2, :castable=>true},
-    41 => {type:"CAST",:repeatable=>true, :delta0=>0, delta1:0, delta2:2, delta3:-1, :castable=>true},
-  }
+    2 => ["CAST", 1, 1, 0, 0, true, false],
+    3 => ["CAST", 0, 0, 1, 0, true, false],
+    4 => ["CAST", 3, 0, 0, 0, true, false],
+    12 => ["CAST", 2, 1, 0, 0, true, false],
+    13 => ["CAST", 4, 0, 0, 0, true, false],
+    14 => ["CAST", 0, 0, 0, 1, true, false],
+    15 => ["CAST", 0, 2, 0, 0, true, false],
+    16 => ["CAST", 1, 0, 1, 0, true, false],
+    18 => ["CAST", -1, -1, 0, 1, true, true],
+    17 => ["CAST", -2, 0, 1, 0, true, true],
+    38 => ["CAST", -2, 2, 0, 0, true, true],
+    39 => ["CAST", 0, 0, -2, 2, true, true],
+    40 => ["CAST", 0, -2, 2, 0, true, true],
+    30 => ["CAST", -4, 0, 1, 1, true, true],
+    34 => ["CAST", -2, 0, -1, 2, true, true],
+    0 => ["CAST", -3, 0, 0, 1, true, true],
+    1 => ["CAST", 3, -1, 0, 0, true, true],
+    5 => ["CAST", 2, 3, -2, 0, true, true],
+    6 => ["CAST", 2, 1, -2, 1, true, true],
+    7 => ["CAST", 3, 0, 1, -1, true, true],
+    8 => ["CAST", 3, -2, 1, 0, true, true],
+    9 => ["CAST", 2, -3, 2, 0, true, true],
+    10 => ["CAST", 2, 2, 0, -1, true, true],
+    11 => ["CAST", -4, 0, 2, 0, true, true],
+    19 => ["CAST", 0, 2, -1, 0, true, true],
+    20 => ["CAST", 2, -2, 0, 1, true, true],
+    21 => ["CAST", -3, 1, 1, 0, true, true],
+    22 => ["CAST", 0, 2, -2, 1, true, true],
+    23 => ["CAST", 1, -3, 1, 1, true, true],
+    24 => ["CAST", 1, 3, 0, -1, true, true],
+    25 => ["CAST", 1, -3, 0, 2, true, true],
+    26 => ["CAST", 1, 1, 1, -1, true, true],
+    27 => ["CAST", 1, 2, -1, 0, true, true],
+    28 => ["CAST", 4, 1, -1, 0, true, true],
+    31 => ["CAST", 0, 3, 2, -2, true, true],
+    32 => ["CAST", 1, 1, 3, -2, true, true],
+    35 => ["CAST", 0, 0, -3, 3, true, true],
+    36 => ["CAST", 0, -3, 3, 0, true, true],
+    37 => ["CAST", -3, 3, 0, 0, true, true],
+    33 => ["CAST", -5, 0, 3, 0, true, true],
+    29 => ["CAST", -5, 0, 0, 2, true, true],
+    41 => ["CAST", 0, 0, 2, -1, true, true]
+  }.freeze
 
   POTIONS = {
     42 => [[2, 2, 0, 0], 6],
@@ -166,7 +166,7 @@ class GameSimulator
 
       p[:actions].transform_values! do |v|
         if action_type(v) == "CAST"
-          v[:castable] = true
+          v[5] = true
           v
         else
           v
@@ -230,7 +230,7 @@ class GameSimulator
       id = portions[1].to_i
       cast_spell = position[:actions][id]
 
-      raise SimulatorError.new("spell exhausted!") unless cast_spell[:castable]
+      raise SimulatorError.new("spell exhausted!") unless cast_spell[5]
 
       cast_times =
         if portions.size > 2
@@ -239,7 +239,7 @@ class GameSimulator
           1
         end
 
-      if cast_times > 1 && !cast_spell[:repeatable]
+      if cast_times > 1 && !cast_spell[6]
         raise SimulatorError.new("spell can't multicast!")
       end
 
@@ -267,7 +267,7 @@ class GameSimulator
         p[:me][0..3] = p[:me][0..3].add(deltas(cast_spell))
       end
 
-      p[:actions][id][:castable] = false
+      p[:actions][id][5] = false
 
       # 2. casting
       #   changes my inv accordingly
@@ -474,7 +474,7 @@ class GameSimulator
     # if @cast_time_cache.key?(key)
     #   @cast_time_cache[key]
     # else
-    #   return @cast_time_cache[key] = 0 unless spell[:castable]
+    #   return @cast_time_cache[key] = 0 unless spell[5]
 
     #   deltas = deltas(spell)
 
@@ -483,7 +483,7 @@ class GameSimulator
     #   return @cast_time_cache[key] = 0 unless can_cast_once[:can]
 
     #   # here we know that can be cast at least once
-    #   return @cast_time_cache[key] = 1 unless spell[:repeatable]
+    #   return @cast_time_cache[key] = 1 unless spell[6]
 
     #   # here we know the spell can be repeated
     #   (2..5).to_a.each do |i|
@@ -495,7 +495,7 @@ class GameSimulator
     #   return @cast_time_cache[key] = 5
     # end
 
-    return 0 unless spell[:castable]
+    return 0 unless spell[5]
 
     deltas = deltas(spell)
 
@@ -504,11 +504,11 @@ class GameSimulator
     return 0 unless can_cast_once[:can]
 
     # here we know that can be cast at least once
-    return 1 unless spell[:repeatable]
+    return 1 unless spell[6]
 
     # here we know the spell can be repeated
     (2..5).to_a.each do |i|
-      next if can_cast?(operation: deltas.map{ |v| v * i}, from: inv)[:can]
+      next if can_cast?(operation: deltas.map { |v| v * i }, from: inv)[:can]
 
       return i-1
     end

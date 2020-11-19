@@ -11,7 +11,11 @@ end
 
 # takes in a spell or a potion and returns inventory-compatible array
 def deltas(action)
-  [action[:delta0], action[:delta1], action[:delta2], action[:delta3]]
+  if action.is_a?(Hash)
+    [action[:delta0], action[:delta1], action[:delta2], action[:delta3]]
+  else
+    action[1..4]
+  end
 end
 
 # @return [String]
