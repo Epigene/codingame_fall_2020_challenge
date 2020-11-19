@@ -391,58 +391,63 @@ class GameSimulator
         final_iteration = generation == max_depth
         penultimate_iteration = generation == max_depth - 1
 
-        moves_to_try = []
+        data = []
+
+        ms_spent_in_this_gen = ms_spent
 
         positions.each_pair do |path, position|
-          already_studied_max_times =
-            past_halfway &&
-            path.count { |v| v.start_with?("LEARN") } >= max_allowed_learning_moves
+          position_processing_time = Benchmark.realtime do
+            already_studied_max_times =
+              past_halfway &&
+              path.count { |v| v.start_with?("LEARN") } >= max_allowed_learning_moves
 
-          # HH This prevents resting after just learning a spell
-          just_learned = position[:me][6].to_s.start_with?("LEARN")
+            # HH This prevents resting after just learning a spell
+            just_learned = position[:me][6].to_s.start_with?("LEARN")
 
-          moves = moves_from(
-            position: position,
-            skip_resting: final_iteration || just_learned,
-            skip_learning: final_iteration || already_studied_max_times
-          )
-          # debug("There are #{ moves.size } moves that can be made after #{ path }")
-          #=> ["REST", "CAST 79"]
+            moves = moves_from(
+              position: position,
+              skip_resting: final_iteration || just_learned,
+              skip_learning: final_iteration || already_studied_max_times
+            )
+            # debug("There are #{ moves.size } moves that can be made after #{ path }")
+            #=> ["REST", "CAST 79"]
 
-          moves.each do |move|
-            moves_to_try << [move, path]
+            moves.each do |move|
+              # 2. loop over OK moves, get results
+              outcome =
+                begin
+                  result(position: positions[path], move: move)
+                rescue => e
+                  raise("Path #{ path << move } leads to err: '#{ e.message }' in #{ e.backtrace.first }")
+                end
+
+              # outcome was an expected invalid move, skipping the outcome
+              next if outcome.is_a?(String)
+
+              # 3. evaluate the outcome
+              distance_from_target = distance_from_target(
+                target: target, inv: outcome[:me][0..3]
+              )
+
+              data << [
+                [*path, move],
+                {
+                  outcome: outcome,
+                  distance_from_target: distance_from_target
+                }
+              ]
+            end
+          end
+
+          ms_spent_in_this_gen += position_processing_time
+
+          if ms_spent_in_this_gen > 45
+            debug("Doing an emergency break out of position processing due to time running out!")
+            break
           end
         end
 
-        debug("There turned out to be #{ moves_to_try.size } moves to check") if past_halfway
-
-        data = []
-
-        moves_to_try.each do |move, path|
-          # 2. loop over OK moves, get results
-          outcome =
-            begin
-              result(position: positions[path], move: move)
-            rescue => e
-              raise("Path #{ path << move } leads to err: '#{ e.message }' in #{ e.backtrace.first }")
-            end
-
-          # outcome was an expected invalid move, skipping the outcome
-          next if outcome.is_a?(String)
-
-          # 3. evaluate the outcome
-          distance_from_target = distance_from_target(
-            target: target, inv: outcome[:me][0..3]
-          )
-
-          data << [
-            [*path, move],
-            {
-              outcome: outcome,
-              distance_from_target: distance_from_target
-            }
-          ]
-        end
+        # debug("There turned out to be #{ moves_to_try.size } moves to check") if past_halfway
 
         data.sort_by! do |(_move, path), specifics|
           [

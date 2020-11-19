@@ -273,7 +273,7 @@ RSpec.describe GameTurn do
           is_expected.to start_with("REST")
         end * 1000
 
-        expect(runtime).to be < 55 # as below 50ms
+        expect(runtime).to be < 50 # as below 50ms
 
         # "let's brew 74 via [REST, CAST 87, CAST 95, CAST 78, CAST 97, CAST 92]"
         #                 or [REST, CAST 87, CAST 78, CAST 95, CAST 97, CAST 92]"
