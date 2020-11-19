@@ -3,11 +3,10 @@
 # rspec spec/game_turn_spec.rb
 RSpec.describe GameTurn do
   let(:instance) { described_class.new(**options) }
-  let(:options) { {actions: actions, me: me, opp: opp, meta: meta} }
+  let(:options) { {actions: actions, me: me, opp: opp} }
   let(:actions) { {} }
   let(:me) { {} }
   let(:opp) { {} }
-  let(:meta) { {} }
 
   # v1
   describe "#move" do
@@ -42,8 +41,7 @@ RSpec.describe GameTurn do
     end
 
     context "when there's spells to learn, but they're all degenerators" do
-      let(:meta) { {turn: 3} }
-      let(:me) { {inv: [3, 2, 0, 0]} }
+      let(:me) { {inv: [3, 2, 0, 0], turn: 3} }
 
       let(:actions) do
         {
@@ -61,8 +59,7 @@ RSpec.describe GameTurn do
     end
 
     context "when there's pure giver spell to learn and it's early in the game" do
-      let(:meta) { {turn: 3} }
-      let(:me) { {inv: [3, 2, 0, 0]} }
+      let(:me) { {inv: [3, 2, 0, 0], turn: 3} }
 
       let(:actions) do
         {
@@ -77,8 +74,7 @@ RSpec.describe GameTurn do
     end
 
     context "when there's a regular transmuter to learn and it's early in the game" do
-      let(:meta) { {turn: 3} }
-      let(:me) { {inv: [3, 2, 0, 0]} }
+      let(:me) { {inv: [3, 2, 0, 0], turn: 3} }
 
       let(:actions) do
         {
@@ -104,8 +100,7 @@ RSpec.describe GameTurn do
         }
       end
 
-      let(:me) { {inv: [3, 0, 0, 0]} }
-      let(:meta) { {turn: 51} }
+      let(:me) { {inv: [3, 0, 0, 0], turn: 51} }
 
       it "returns the move to transmute to green" do
         is_expected.to include("CAST 2")
@@ -113,8 +108,7 @@ RSpec.describe GameTurn do
     end
 
     context "when I've just made a green one and should just rest to get another" do
-      let(:me) { {inv: [2, 1, 1, 1]} }
-      let(:meta) { {turn: 51} }
+      let(:me) { {inv: [2, 1, 1, 1], turn: 51} }
 
       let(:actions) do
         {
@@ -136,8 +130,7 @@ RSpec.describe GameTurn do
     end
 
     context "when we've a bunch of spells" do
-      let(:me) { {inv: [6, 2, 1, 0]} } # total of 9
-      let(:meta) { {turn: 51} }
+      let(:me) { {inv: [6, 2, 1, 0], turn: 51} } # total of 9
 
       let(:actions) do
         {
@@ -186,8 +179,7 @@ RSpec.describe GameTurn do
         }
       end
 
-      let(:me) { {:inv=>[3, 0, 0, 0], :score=>0} }
-      let(:meta) { {:turn=>1, previous_move: ""} }
+      let(:me) { {:inv=>[3, 0, 0, 0], :score=>0, turn: 1, previous_move: ""} }
 
       it "returns the first step towards easy brewin of leftmost potion" do
         is_expected.to eq(

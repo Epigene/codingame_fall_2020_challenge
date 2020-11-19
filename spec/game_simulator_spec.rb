@@ -28,8 +28,7 @@ RSpec.describe GameSimulator do
             84 => {type:"OPPONENT_CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[3, 0, 0, 0], :score=>0},
-          meta: {turn: 1}
+          me: {inv: [3, 0, 0, 0], score: 0, turn: 1}
         }
       end
 
@@ -52,8 +51,8 @@ RSpec.describe GameSimulator do
             86 => {type:"CAST", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true}
           }
 
-          p[:meta][:turn] = 2
-          p[:meta][:previous_move] = move
+          p[:me][:turn] = 2
+          p[:me][:previous_move] = move
         end
       end
 
@@ -83,8 +82,7 @@ RSpec.describe GameSimulator do
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             87 => {type:"OPPONENT_CAST", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
           },
-          me: {:inv=>[2, 0, 0, 0], :score=>0},
-          meta: {turn: 2}
+          me: {:inv=>[2, 0, 0, 0], :score=>0, turn: 2},
         }
       end
 
@@ -107,9 +105,9 @@ RSpec.describe GameSimulator do
             88 => described_class::LEARNED_SPELL_DATA[0]
           }
 
-          p[:meta][:turn] = 3
-          p[:meta][:previous_move] = move
           p[:me] = {:inv=>[1, 0, 0, 0], :score=>0}
+          p[:me][:turn] = 3
+          p[:me][:previous_move] = move
         end
       end
 
@@ -132,8 +130,7 @@ RSpec.describe GameSimulator do
             81 => {type:"CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             87 => {type:"OPPONENT_CAST", delta0: 3, delta1:-2, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
           },
-          me: {:inv=>[2, 0, 0, 0], :score=>0},
-          meta: {turn: 2}
+          me: {:inv=>[2, 0, 0, 0], :score=>0, turn: 2},
         }
       end
 
@@ -149,9 +146,9 @@ RSpec.describe GameSimulator do
             88 => described_class::LEARNED_SPELL_DATA[24]
           }
 
-          p[:meta][:turn] = 3
-          p[:meta][:previous_move] = move
           p[:me] = {:inv=>[3, 0, 0, 0], :score=>0}
+          p[:me][:turn] = 3
+          p[:me][:previous_move] = move
         end
       end
 
@@ -170,8 +167,7 @@ RSpec.describe GameSimulator do
             78 => {type:"CAST", delta0: 3, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
             79 => {type:"CAST", delta0: -2, delta1:2, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>true},
           },
-          me: {:inv=>[2, 0, 0, 0], :score=>0},
-          meta: {turn: 2}
+          me: {:inv=>[2, 0, 0, 0], :score=>0, turn: 2},
         }
       end
 
@@ -182,8 +178,7 @@ RSpec.describe GameSimulator do
             78 => {type:"CAST", delta0: 3, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             79 => {type:"CAST", delta0: -2, delta1:2, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
           },
-          me: {:inv=>[2, 0, 0, 0], :score=>0},
-          meta: {turn: 3, previous_move: "REST"}
+          me: {:inv=>[2, 0, 0, 0], :score=>0, turn: 3, previous_move: "REST"},
         )
       end
     end
@@ -198,8 +193,7 @@ RSpec.describe GameSimulator do
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[0, 1, 0, 0], :score=>0},
-          meta: {:turn=>5}
+          me: {:inv=>[0, 1, 0, 0], :score=>0, :turn=>5},
         }
       end
 
@@ -210,8 +204,7 @@ RSpec.describe GameSimulator do
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[2, 1, 0, 0], :score=>0},
-          meta: {:turn=>6, previous_move: move}
+          me: {:inv=>[2, 1, 0, 0], :score=>0, :turn=>6, previous_move: move},
         )
       end
     end
@@ -226,8 +219,7 @@ RSpec.describe GameSimulator do
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[1, 0, 0, 0], :score=>0},
-          meta: {:turn=>4}
+          me: {:inv=>[1, 0, 0, 0], :score=>0, :turn=>4},
         }
       end
 
@@ -238,9 +230,7 @@ RSpec.describe GameSimulator do
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[0, 1, 0, 0], :score=>0},
-          meta: {:turn=>5, previous_move: move}
-
+          me: {:inv=>[0, 1, 0, 0], :score=>0, :turn=>5, previous_move: move},
         )
       end
     end
@@ -256,8 +246,7 @@ RSpec.describe GameSimulator do
             10 => {type:"CAST", delta0: 2, delta1:2, delta2:0, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[1, 2, 3, 1], :score=>0},
-          meta: {:turn=>4}
+          me: {:inv=>[1, 2, 3, 1], :score=>0, :turn=>4},
         }
       end
 
@@ -269,8 +258,7 @@ RSpec.describe GameSimulator do
             10 => {type:"CAST", delta0: 2, delta1:2, delta2:0, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>true},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[3, 4, 3, 0], :score=>0},
-          meta: {:turn=>5, previous_move: move}
+          me: {:inv=>[3, 4, 3, 0], :score=>0, :turn=>5, previous_move: move},
         )
       end
     end
@@ -286,8 +274,7 @@ RSpec.describe GameSimulator do
             10 => {type:"CAST", delta0: 2, delta1:2, delta2:0, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[1, 0, 1, 2], :score=>0},
-          meta: {:turn=>4}
+          me: {:inv=>[1, 0, 1, 2], :score=>0, :turn=>4},
         }
       end
 
@@ -299,8 +286,7 @@ RSpec.describe GameSimulator do
             10 => {type:"CAST", delta0: 2, delta1:2, delta2:0, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>true},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[5, 4, 1, 0], :score=>0},
-          meta: {:turn=>5, previous_move: move}
+          me: {:inv=>[5, 4, 1, 0], :score=>0, :turn=>5, previous_move: move},
         )
       end
     end
@@ -316,8 +302,7 @@ RSpec.describe GameSimulator do
             10 => {type:"CAST", delta0: 2, delta1:2, delta2:0, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[1, 0, 1, 2], :score=>0},
-          meta: {:turn=>4, previous_move: "REST mehh"}
+          me: {:inv=>[1, 0, 1, 2], :score=>0, :turn=>4, previous_move: "REST mehh"},
         }
       end
 
@@ -341,8 +326,7 @@ RSpec.describe GameSimulator do
             78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[4, 0, 0, 0], :score=>0},
-          meta: {turn: 1}
+          me: {:inv=>[4, 0, 0, 0], :score=>0, turn: 1},
         }
       end
 
@@ -381,8 +365,7 @@ RSpec.describe GameSimulator do
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[0, 0, 0, 0], :score=>0},
-          meta: {:turn=>4}
+          me: {:inv=>[0, 0, 0, 0], :score=>0, :turn=>4},
         }
       end
 
@@ -402,8 +385,7 @@ RSpec.describe GameSimulator do
             86 => {type:"CAST", delta0: -2, delta1:2, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[3, 0, 0, 0], :score=>0},
-          meta: {:turn=>4}
+          me: {:inv=>[3, 0, 0, 0], :score=>0, :turn=>4},
         }
       end
 
@@ -423,8 +405,7 @@ RSpec.describe GameSimulator do
             86 => {type:"CAST", delta0: 2, delta1:2, delta2:0, delta3:-1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[4, 3, 1, 1], :score=>0},
-          meta: {:turn=>4}
+          me: {:inv=>[4, 3, 1, 1], :score=>0, :turn=>4},
         }
       end
 
@@ -443,8 +424,7 @@ RSpec.describe GameSimulator do
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[1, 1, 1, 1], :score=>0},
-          meta: {:turn=>4}
+          me: {:inv=>[1, 1, 1, 1], :score=>0, :turn=>4},
         }
       end
 
@@ -470,8 +450,7 @@ RSpec.describe GameSimulator do
             80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[3, 1, 0, 0], :score=>0},
-          meta: {:turn=>1, previous_move: ""}
+          me: {:inv=>[3, 1, 0, 0], :score=>0, :turn=>1, previous_move: ""},
         }
       end
 
@@ -489,8 +468,7 @@ RSpec.describe GameSimulator do
             80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[0, 0, 0, 0], :score=>0},
-          meta: {:turn=>1, previous_move: ""}
+          me: {:inv=>[0, 0, 0, 0], :score=>0, :turn=>1, previous_move: ""},
         }
       end
 
@@ -511,8 +489,7 @@ RSpec.describe GameSimulator do
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             86 => {type:"CAST", delta0: 3, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
           },
-          me: {:inv=>[0, 0, 0, 0], :score=>0},
-          meta: {:turn=>1, previous_move: ""}
+          me: {:inv=>[0, 0, 0, 0], :score=>0, :turn=>1, previous_move: ""},
         }
       end
 
@@ -532,8 +509,7 @@ RSpec.describe GameSimulator do
             80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false}
           },
-          me: {:inv=>[0, 0, 0, 0], :score=>0},
-          meta: {:turn=>1, previous_move: ""}
+          me: {:inv=>[0, 0, 0, 0], :score=>0, :turn=>1, previous_move: ""},
         }
       end
 
@@ -554,8 +530,7 @@ RSpec.describe GameSimulator do
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             86 => {type:"CAST", delta0: 0, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
           },
-          me: {:inv=>[0, 0, 0, 1], :score=>0},
-          meta: {:turn=>3, previous_move: "CAST 86"}
+          me: {:inv=>[0, 0, 0, 1], :score=>0, :turn=>3, previous_move: "CAST 86"},
         }
       end
 
@@ -577,8 +552,7 @@ RSpec.describe GameSimulator do
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             90 => {type:"CAST", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
           },
-          me: {:inv=>[2, 0, 0, 0], :score=>0},
-          meta: {:turn=>3, previous_move: "REST"}
+          me: {:inv=>[2, 0, 0, 0], :score=>0, :turn=>3, previous_move: "REST"},
         }
       end
 
@@ -605,15 +579,14 @@ RSpec.describe GameSimulator do
             79 => {type:"CAST", delta0: -1, delta1:1, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             80 => {type:"CAST", delta0: 0, delta1:-1, delta2:1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             81 => {type:"CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-            85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+            # 85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
           },
-          me: {:inv=>[2, 0, 0, 0], :score=>0},
-          meta: {:turn=>3, previous_move: "REST"}
+          me: {:inv=>[2, 0, 0, 0], :score=>0, :turn=>3, previous_move: "REST"},
         }
       end
 
       it "knows patience and saves Aquas to learn an imba spell" do
-        is_expected.to eq(["CAST 78", "REST", "CAST 78", "LEARN 14", "CAST 86", "REST", "CAST 86"])
+        is_expected.to eq(["CAST 78", "REST", "CAST 78", "LEARN 14", "CAST 82", "REST", "CAST 82"])
       end
     end
 
@@ -670,8 +643,7 @@ RSpec.describe GameSimulator do
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             90 => {type:"CAST", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
           },
-          me: {:inv=>[2, 0, 0, 0], :score=>0},
-          meta: {:turn=>3, previous_move: "REST"}
+          me: {:inv=>[2, 0, 0, 0], :score=>0, :turn=>3, previous_move: "REST"}
         }
       end
 
@@ -702,8 +674,7 @@ RSpec.describe GameSimulator do
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             90 => {type:"CAST", delta0: -3, delta1:0, delta2:0, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
           },
-          me: {:inv=>[2, 0, 0, 0], :score=>0},
-          meta: {:turn=>3, previous_move: "REST"}
+          me: {:inv=>[2, 0, 0, 0], :score=>0, :turn=>3, previous_move: "REST"}
         }
       end
 
@@ -769,8 +740,7 @@ RSpec.describe GameSimulator do
             86 => {type:"CAST", delta0: 0, delta1:-2, delta2:2, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
             87 => {type:"CAST", delta0: 0, delta1:2, delta2:-1, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>true}
           },
-          me: {:inv=>[0, 4, 0, 0], :score=>0},
-          meta: {:turn=>1, previous_move: ""}
+          me: {:inv=>[0, 4, 0, 0], :score=>0, :turn=>1, previous_move: ""},
         }
       end
 
@@ -788,8 +758,7 @@ RSpec.describe GameSimulator do
             24 => {type:"LEARN", delta0: 0, delta1:3, delta2:0, delta3:-1, price: 0, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>true},
             78 => {type:"CAST", delta0: 2, delta1:0, delta2:0, delta3:0, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
           },
-          me: {:inv=>[0, 4, 0, 0], :score=>0},
-          meta: {:turn=>1, previous_move: "REST"}
+          me: {:inv=>[0, 4, 0, 0], :score=>0, :turn=>1, previous_move: "REST"}
         }
       end
 

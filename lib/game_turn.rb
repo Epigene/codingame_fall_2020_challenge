@@ -7,9 +7,9 @@ class GameTurn
     delta3: 7
   }.freeze
 
-  attr_reader :actions, :me, :opp, :meta
+  attr_reader :actions, :me, :opp
 
-  def initialize(actions:, me:, opp:, meta: {turn: 1})
+  def initialize(actions:, me:, opp:)
     actions.each do |k, v|
       debug("#{ k } => #{ v },", prefix: "")
     end
@@ -20,9 +20,6 @@ class GameTurn
 
     debug("me: #{ me }")
     # debug("opp: #{ opp }")
-
-    @meta = meta
-    debug("meta: #{ meta }")
   end
 
   # V1, a bunch of else-ifs
@@ -100,8 +97,7 @@ class GameTurn
     def position
       @position ||= {
         actions: actions,
-        me: me,
-        meta: meta
+        me: me
       }
     end
 
@@ -157,7 +153,7 @@ class GameTurn
     def spell_to_learn_id
       return @spell_to_learn_id if defined?(@spell_to_learn_id)
 
-      return @spell_to_learn_id = nil if meta[:turn] > 15
+      return @spell_to_learn_id = nil if me[:turn] > 15
 
       # first pass, looking over up to fourth slot for pure giver spells
       spell_to_learn =

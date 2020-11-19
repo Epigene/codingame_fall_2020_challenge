@@ -158,7 +158,7 @@ class GameSimulator
 
     case verb
     when "REST"
-      if position.dig(:meta, :previous_move).to_s.start_with?("REST")
+      if position.dig(:me, :previous_move).to_s.start_with?("REST")
         raise SimulatorError.new("do not rest twice in a row!")
       end
 
@@ -173,8 +173,8 @@ class GameSimulator
         end
       end
 
-      p[:meta][:turn] += 1
-      p[:meta][:previous_move] = move
+      p[:me][:turn] += 1
+      p[:me][:previous_move] = move
 
       p
     when "LEARN"
@@ -220,8 +220,8 @@ class GameSimulator
       end
 
       p[:actions][max_cast_id.next] = LEARNED_SPELL_DATA[id]
-      p[:meta][:turn] += 1
-      p[:meta][:previous_move] = move
+      p[:me][:turn] += 1
+      p[:me][:previous_move] = move
       p[:me][:inv][0] -= learn_index
       p[:me][:inv][0] += learned_spell[:tax_count] if learned_spell[:tax_count].positive?
 
@@ -272,8 +272,8 @@ class GameSimulator
       # 2. casting
       #   changes my inv accordingly
       #   changes spell castability accordingly
-      p[:meta][:turn] += 1
-      p[:meta][:previous_move] = move
+      p[:me][:turn] += 1
+      p[:me][:previous_move] = move
       p
     else
       {error: "verb '#{ verb }' not supported"}
@@ -286,7 +286,6 @@ class GameSimulator
 
     p2 = {
       actions: dupped_actions,
-      meta: position[:meta].dup,
       me: position[:me].dup
     }
 
@@ -300,7 +299,7 @@ class GameSimulator
   # This is the brute-forcing component.
   # Uses heuristics to try most promising paths first
   # @target [Array] # target inventory to solve for
-  # @start [Hash] # the starting position, actions, me and meta expected
+  # @start [Hash] # the starting position, actions and me expected
   #
   # @return [Array<String>]
   def moves_towards(target:, start:, path: [], max_depth: 6, depth: 0)
@@ -453,7 +452,7 @@ class GameSimulator
       end
     end
 
-    if !skip_resting && !position[:meta][:previous_move].to_s.start_with?("REST")
+    if !skip_resting && !position[:me][:previous_move].to_s.start_with?("REST")
       moves << "REST"
     end
 
