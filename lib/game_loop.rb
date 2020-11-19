@@ -38,18 +38,19 @@ loop do
 
   inv0, inv1, inv2, inv3, score = gets.split(" ").map(&:to_i)
 
-  me = {
-    inv: [inv0, inv1, inv2, inv3],
-    score: score,
-    turn: @turn, previous_move: @previous_move
-  }
+  me = [
+    inv0, inv1, inv2, inv3, #[0..3]
+    score, # 4
+    @turn, # 5
+    @previous_move # 6
+  ]
 
   inv0, inv1, inv2, inv3, score = gets.split(" ").map(&:to_i)
 
-  opp = {
-    inv: [inv0, inv1, inv2, inv3],
-    score: score
-  }
+  opp = [
+    inv0, inv1, inv2, inv3,
+    score
+  ]
 
   turn = GameTurn.new(
     actions: actions,

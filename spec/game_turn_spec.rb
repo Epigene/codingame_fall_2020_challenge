@@ -179,7 +179,7 @@ RSpec.describe GameTurn do
         }
       end
 
-      let(:me) { {:inv=>[3, 0, 0, 0], :score=>0, turn: 1, previous_move: ""} }
+      let(:me) { [3, 0, 0, 0, 0, 1, ""] }
 
       it "returns the first step towards easy brewin of leftmost potion" do
         is_expected.to eq(

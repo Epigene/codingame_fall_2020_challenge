@@ -158,7 +158,7 @@ class GameSimulator
 
     case verb
     when "REST"
-      if position.dig(:me, :previous_move).to_s.start_with?("REST")
+      if position.dig(:me, 6).to_s.start_with?("REST")
         raise SimulatorError.new("do not rest twice in a row!")
       end
 
@@ -173,8 +173,8 @@ class GameSimulator
         end
       end
 
-      p[:me][:turn] += 1
-      p[:me][:previous_move] = move
+      p[:me][5] += 1
+      p[:me][6] = move
 
       p
     when "LEARN"
@@ -182,7 +182,7 @@ class GameSimulator
       learned_spell = position[:actions][id]
       learn_index = learned_spell[:tome_index]
 
-      if learn_index > position[:me][:inv][0]
+      if learn_index > position[:me][0]
         raise SimulatorError.new("insufficient aqua for learning tax!")
       end
 
@@ -220,10 +220,10 @@ class GameSimulator
       end
 
       p[:actions][max_cast_id.next] = LEARNED_SPELL_DATA[id]
-      p[:me][:turn] += 1
-      p[:me][:previous_move] = move
-      p[:me][:inv][0] -= learn_index
-      p[:me][:inv][0] += learned_spell[:tax_count] if learned_spell[:tax_count].positive?
+      p[:me][5] += 1
+      p[:me][6] = move
+      p[:me][0] -= learn_index
+      p[:me][0] += learned_spell[:tax_count] if learned_spell[:tax_count].positive?
 
       p
     when "CAST"
@@ -250,7 +250,7 @@ class GameSimulator
           deltas(cast_spell).map{ |v| v * cast_times}
         end
 
-      casting_check = can_cast?(operation: operation, from: position[:me][:inv])
+      casting_check = can_cast?(operation: operation, from: position[:me][0..3])
 
       if !casting_check[:can]
         if casting_check[:detail] == :insufficient_ingredients
@@ -264,7 +264,7 @@ class GameSimulator
       p = dup_of(position)
 
       cast_times.times do
-        p[:me][:inv] = p[:me][:inv].add(deltas(cast_spell))
+        p[:me][0..3] = p[:me][0..3].add(deltas(cast_spell))
       end
 
       p[:actions][id][:castable] = false
@@ -272,8 +272,8 @@ class GameSimulator
       # 2. casting
       #   changes my inv accordingly
       #   changes spell castability accordingly
-      p[:me][:turn] += 1
-      p[:me][:previous_move] = move
+      p[:me][5] += 1
+      p[:me][6] = move
       p
     else
       {error: "verb '#{ verb }' not supported"}
@@ -288,10 +288,6 @@ class GameSimulator
       actions: dupped_actions,
       me: position[:me].dup
     }
-
-    p2[:me][:inv] = position[:me][:inv].dup
-
-    p2
   end
 
   MY_MOVES = ["CAST", "LEARN"].to_set.freeze
@@ -305,7 +301,7 @@ class GameSimulator
   def moves_towards(target:, start:, path: [], max_depth: 6, depth: 0)
     if depth == 0
       distance_from_target = distance_from_target(
-        target: target, inv: start[:me][:inv]
+        target: target, inv: start[:me][0..3]
       )
 
       return [] if distance_from_target[:distance].zero?
@@ -354,7 +350,7 @@ class GameSimulator
 
           # 3. evaluate the outcome
           distance_from_target = distance_from_target(
-            target: target, inv: outcome[:me][:inv]
+            target: target, inv: outcome[:me][0..3]
           )
 
           key = [*path, move]
@@ -438,7 +434,7 @@ class GameSimulator
       if action[:type] == "LEARN"
         moves << "LEARN #{ id }"
       elsif action[:type] == "CAST"
-        times = possible_cast_times(spell: action, inv: position[:me][:inv])
+        times = possible_cast_times(spell: action, inv: position[:me][0..3])
 
         next if times == 0
 
@@ -452,7 +448,7 @@ class GameSimulator
       end
     end
 
-    if !skip_resting && !position[:me][:previous_move].to_s.start_with?("REST")
+    if !skip_resting && !position[:me][6].to_s.start_with?("REST")
       moves << "REST"
     end
 
