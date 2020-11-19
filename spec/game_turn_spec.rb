@@ -175,11 +175,6 @@ RSpec.describe GameTurn do
           1 => ["LEARN", 3, -1, 0, 0, 4, 0],
           22 => ["LEARN", 0, 2, -2, 1, 5, 0],
 
-          # 78 => {:type=>"CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          # 79 => {:type=>"CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          # 80 => {:type=>"CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-          # 81 => {:type=>"CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
-
           # [type, (1..4)inv, 5=castable, 6=repeatable]
           78 => ["CAST", 2, 0, 0, 0, true, false],
           79 => ["CAST", -1, 1, 0, 0, true, false],
@@ -191,9 +186,32 @@ RSpec.describe GameTurn do
       let(:me) { [3, 0, 0, 0, 0, 1, ""] }
 
       it "returns the first step towards easy brewin of leftmost potion" do
-        is_expected.to eq(
-          "LEARN 16 let's brew 60 via [LEARN 16, CAST 82, REST, CAST 82, REST, CAST 82]"
-        )
+        is_expected.to start_with("LEARN 16")
+      end
+    end
+
+    context "when going for that leftmost potion, but an excellent (+4) giver spell is right there" do
+      let(:actions) do
+        {
+          1 => ["LEARN", 3, -1, 0, 0, 0, 1],
+          18 => ["LEARN", -1, -1, 0, 1, 1, 0],
+          9 => ["LEARN", 2, -3, 2, 0, 2, 0],
+          24 => ["LEARN", 0, 3, 0, -1, 3, 0],
+          23 => ["LEARN", 1, -3, 1, 1, 4, 0],
+          15 => ["LEARN", 0, 2, 0, 0, 5, 0], # our baby
+          78 => ["CAST", 2, 0, 0, 0, true, false],
+          79 => ["CAST", -1, 1, 0, 0, true, false],
+          80 => ["CAST", 0, -1, 1, 0, true, false],
+          81 => ["CAST", 0, 0, -1, 1, true, false],
+          87 => ["CAST", 0, 0, 0, 1, true, false],
+          90 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>2, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+        }
+      end
+
+      let(:me) { [2, 0, 0, 1, 0, 5, "REST let's brew 52 via [REST, CAST 87, CAST 78]"] }
+
+      it "short-circuits bruteforcer to just go for 1st step towards spell learn" do
+        is_expected.to start_with("CAST 78") # eq("LEARN 15")
       end
     end
   end

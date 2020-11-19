@@ -3,56 +3,56 @@ class GameSimulator
   # opponent moves can naturally not be simulated, and impossible to know what new spells
   # and potions will appear later.
   class ::SimulatorError < RuntimeError; end
-
-  PURE_GIVER_IDS = [2, 3, 4, 12, 13, 14, 15, 16].to_set.freeze
+  #                 78, 82 are default 1st spell ids, the [2, 0, 0, 0] spells
+  PURE_GIVER_IDS = [78, 82, 2, 3, 4, 12, 13, 14, 15, 16].to_set.freeze
   GOOD_SPELL_IDS = [18, 17, 38, 39, 40, 30, 34].to_set.freeze
 
   LEARNABLE_SPELLS = {
-    # id => [deltas, can be multicast, hard_skip]
-    2 => [[1, 1, 0, 0], false, false], # pure giver
-    3 => [[0, 0, 1, 0], false, false], # pure giver
-    4 => [[3, 0, 0, 0], false, false], # pure giver
-    12 => [[2, 1, 0, 0], false, false], # pure giver
-    13 => [[4, 0, 0, 0], false, false], # pure giver
-    14 => [[0, 0, 0, 1], false, false], # pure giver
-    15 => [[0, 2, 0, 0], false, false], # pure giver
-    16 => [[1, 0, 1, 0], false, false], # pure giver
+    # id => [deltas,  can be multicast, hard_skip, value_per_turn]
+    2 => [1, 1, 0, 0, false, false, 3], # pure giver
+    3 => [0, 0, 1, 0, false, false, 3], # pure giver
+    4 => [3, 0, 0, 0, false, false, 3], # pure giver
+    12 => [2, 1, 0, 0, false, false, 4], # pure giver
+    13 => [4, 0, 0, 0, false, false, 4], # pure giver
+    14 => [0, 0, 0, 1, false, false, 4], # pure giver
+    15 => [0, 2, 0, 0, false, false, 4], # pure giver
+    16 => [1, 0, 1, 0, false, false, 4], # pure giver
 
-    18 => [[-1, -1, 0, 1], true, false], # IMBA
-    17 => [[-2, 0, 1, 0], true, false], # GREAT!, better version of 11
-    38 => [[-2, 2, 0, 0], true, false], # OK
-    39 => [[0, 0, -2, 2], true, false], # OK
-    40 => [[0, -2, 2, 0], true, false], # OK
-    30 => [[-4, 0, 1, 1], true, false], # OK
-    34 => [[-2, 0, -1, 2], true, false], # OK
+    18 => [-1, -1, 0, 1, true, false, 1], # IMBA, huge multicast potential, special in that it takes two givers
+    17 => [-2, 0, 1, 0, true, false, 1], # GREAT!, better version of 11
+    38 => [-2, 2, 0, 0, true, false, 2], # OK
+    39 => [0, 0, -2, 2, true, false, 2], # OK
+    40 => [0, -2, 2, 0, true, false, 2], # OK
+    30 => [-4, 0, 1, 1, true, false, 3], # OK
+    34 => [-2, 0, -1, 2, true, false, 3], # OK, takes two givers
 
-    0 => [[-3, 0, 0, 1], true, false], # so-so
-    1 => [[3, -1, 0, 0], true, false], # degen
-    5 => [[2, 3, -2, 0], true, false], # degen
-    6 => [[2, 1, -2, 1], true, false], # so-so, lossy
-    7 => [[3, 0, 1, -1], true, false], # degen
-    8 => [[3, -2, 1, 0], true, false], # so-so, lossy
-    9 => [[2, -3, 2, 0], true, false], # so-so, lossy
-    10 => [[2, 2, 0, -1], true, false], # degen
-    11 => [[-4, 0, 2, 0], true, false], # so-so, bad version of 17
-    19 => [[0, 2, -1, 0], true, false], # degen
-    20 => [[2, -2, 0, 1], true, false], # so-so, lossy
-    21 => [[-3, 1, 1, 0], true, false], # lossy
-    22 => [[0, 2, -2, 1], true, false], # so-so, twist
-    23 => [[1, -3, 1, 1], true, false], # so-so, twist
-    24 => [[0, 3, 0, -1], true, false], # degen
-    25 => [[0, -3, 0, 2], true, false], # so-so
-    26 => [[1, 1, 1, -1], true, false], # degen
-    27 => [[1, 2, -1, 0], true, false], # degen
-    28 => [[4, 1, -1, 0], true, false], # degen
-    31 => [[0, 3, 2, -2], true, false], # degen
-    32 => [[1, 1, 3, -2], true, false], # degen
-    35 => [[0, 0, -3, 3], true, false], # so-so
-    36 => [[0, -3, 3, 0], true, false], # so-so
-    37 => [[-3, 3, 0, 0], true, false], # so-so
-    33 => [[-5, 0, 3, 0], true, true], # mehh
-    29 => [[-5, 0, 0, 2], true, true], # mehh
-    41 => [[0, 0, 2, -1], true, false] # degen
+    0 => [-3, 0, 0, 1, true, false, 1], # so-so-to-OK
+    21 => [-3, 1, 1, 0, true, false, 2], # so-so, lossy
+    37 => [-3, 3, 0, 0, true, false, 3], # so-so-to-OK
+    1 => [3, -1, 0, 0, true, false, 1], # degen
+    5 => [2, 3, -2, 0, true, false, 2], # degen
+    6 => [2, 1, -2, 1, true, false, 2], # so-so, lossy
+    7 => [3, 0, 1, -1, true, false, 2], # degen
+    8 => [3, -2, 1, 0, true, false, 2], # so-so, lossy
+    9 => [2, -3, 2, 0, true, false, 2], # so-so, lossy
+    10 => [2, 2, 0, -1, true, false, 2], # degen
+    19 => [0, 2, -1, 0, true, false, 1], # degen
+    20 => [2, -2, 0, 1, true, false, 2], # so-so, lossy
+    22 => [0, 2, -2, 1, true, false, 2], # so-so, twist
+    23 => [1, -3, 1, 1, true, false, 2], # so-so, twist
+    24 => [0, 3, 0, -1, true, false, 2], # degen
+    25 => [0, -3, 0, 2, true, false, 2], # so-so
+    26 => [1, 1, 1, -1, true, false, 2], # degen, excellent multicast
+    27 => [1, 2, -1, 0, true, false, 2], # degen, good multicast
+    28 => [4, 1, -1, 0, true, false, 3], # degen, low chance to multicast :(
+    31 => [0, 3, 2, -2, true, false, 4], # degen
+    32 => [1, 1, 3, -2, true, false, 4], # degen
+    36 => [0, -3, 3, 0, true, false, 3], # so-so
+    35 => [0, 0, -3, 3, true, false, 3], # so-so
+    11 => [-4, 0, 2, 0, true, false, 2], # so-so, bad version of 17
+    33 => [-5, 0, 3, 0, true, true, 4], # so-so
+    29 => [-5, 0, 0, 2, true, true, 3], # mehh
+    41 => [0, 0, 2, -1, true, false, 2] # degen, good chance to multicast
   }.freeze
 
   LEARNED_SPELL_DATA = {
@@ -328,70 +328,70 @@ class GameSimulator
 
     closest_so_far = nil
 
+    ms_spent = 0.0
+
     (1..max_depth).to_a.each do |generation|
-      debug("Starting move and outcome crunch for generation #{ generation }")
-      # debug("There are #{ positions.keys.size } positions to check moves for")
+      generation_runtime = Benchmark.realtime do
+        past_halfway = generation >= (max_depth / 2).next
+        debug("Starting move and outcome crunch for generation #{ generation }") if past_halfway
+        # debug("There are #{ positions.keys.size } positions to check moves for")
 
-      final_iteration = generation == max_depth
-      penultimate_iteration = generation == max_depth - 1
+        final_iteration = generation == max_depth
+        penultimate_iteration = generation == max_depth - 1
 
-      past_halfway = generation >= (max_depth.next / 2)
+        moves_to_try = []
 
-      moves_to_try = []
+        positions.each_pair do |path, position|
+          already_studied_max_times =
+            past_halfway &&
+            path.count { |v| v.start_with?("LEARN") } >= max_allowed_learning_moves
 
-      positions.each_pair do |path, position|
-        already_studied_max_times =
-          past_halfway &&
-          path.count { |v| v.start_with?("LEARN") } >= max_allowed_learning_moves
+          # HH This prevents resting after just learning a spell
+          just_learned = position[:me][6].to_s.start_with?("LEARN")
 
-        # HH This prevents resting after just learning a spell
-        just_learned = position[:me][6].to_s.start_with?("LEARN")
+          moves = moves_from(
+            position: position,
+            skip_resting: final_iteration || just_learned,
+            skip_learning: final_iteration || already_studied_max_times
+          )
+          # debug("There are #{ moves.size } moves that can be made after #{ path }")
+          #=> ["REST", "CAST 79"]
 
-        moves = moves_from(
-          position: position,
-          skip_resting: final_iteration || just_learned,
-          skip_learning: final_iteration || already_studied_max_times
-        )
-        # debug("There are #{ moves.size } moves that can be made after #{ path }")
-        #=> ["REST", "CAST 79"]
-
-        moves.each do |move|
-          moves_to_try << [move, path]
-        end
-      end
-
-      debug("There turned out to be #{ moves_to_try.size } moves to check")
-
-      data = []
-
-      moves_to_try.each do |move, path|
-        # 2. loop over OK moves, get results
-        outcome =
-          begin
-            result(position: positions[path], move: move)
-          rescue => e
-            raise("Path #{ path << move } leads to err: '#{ e.message }' in #{ e.backtrace.first }")
+          moves.each do |move|
+            moves_to_try << [move, path]
           end
+        end
 
-        # outcome was an expected invalid move, skipping the outcome
-        next if outcome.is_a?(String)
+        debug("There turned out to be #{ moves_to_try.size } moves to check") if past_halfway
 
-        # 3. evaluate the outcome
-        distance_from_target = distance_from_target(
-          target: target, inv: outcome[:me][0..3]
-        )
+        data = []
 
-        data << [
-          [*path, move],
-          {
-            outcome: outcome,
-            distance_from_target: distance_from_target
-          }
-        ]
-      end
+        moves_to_try.each do |move, path|
+          # 2. loop over OK moves, get results
+          outcome =
+            begin
+              result(position: positions[path], move: move)
+            rescue => e
+              raise("Path #{ path << move } leads to err: '#{ e.message }' in #{ e.backtrace.first }")
+            end
 
-      # takes very little time
-      sort_time = Benchmark.realtime do
+          # outcome was an expected invalid move, skipping the outcome
+          next if outcome.is_a?(String)
+
+          # 3. evaluate the outcome
+          distance_from_target = distance_from_target(
+            target: target, inv: outcome[:me][0..3]
+          )
+
+          data << [
+            [*path, move],
+            {
+              outcome: outcome,
+              distance_from_target: distance_from_target
+            }
+          ]
+        end
+
         data.sort_by! do |(_move, path), specifics|
           [
             specifics[:distance_from_target][:distance],
@@ -399,80 +399,87 @@ class GameSimulator
           ]
         end
         #=> [[move, data], ["CATS 78", {outcome: {actions: {...}}}]]
-      end
-      debug("Sorting gen #{ generation } took #{ (sort_time * 1000).round(1) }ms")
 
-      prime_candidate = data.first
-      prime_specifics = prime_candidate[1]
+        prime_candidate = data.first
+        prime_specifics = prime_candidate[1]
 
-      # check best move, if with it we're there, done!
-      return_prime_candidate =
-        if prime_specifics[:distance_from_target][:distance] == 0
-          :target_reached
-        elsif final_iteration
-          :max_depth_reached
-        else
-          false
+        # check best move, if with it we're there, done!
+        return_prime_candidate =
+          if prime_specifics[:distance_from_target][:distance] == 0
+            :target_reached
+          elsif final_iteration
+            :max_depth_reached
+          else
+            false
+          end
+
+        if return_prime_candidate
+          debug("Returning prime candidate because #{ return_prime_candidate }")
+          return prime_candidate[0]
         end
 
-      if return_prime_candidate
-        debug("Returning prime candidate because #{ return_prime_candidate }")
-        return prime_candidate[0]
-      end
+        # no move got us there, lets go deeper.
+        # here's we can inject heuristics of which results to keep and drop for next gen
+        # 1. drop outcomes that are too far behind the best variant. Since some spells give 4 in one move,
+        #     probably safe to use 8+
+        heuristic_run = Benchmark.realtime do
+          # 1. dropping hopeless variations
+          lowest_distance = prime_specifics[:distance_from_target][:distance]
 
-      # no move got us there, lets go deeper.
-      # here's we can inject heuristics of which results to keep and drop for next gen
-      # 1. drop outcomes that are too far behind the best variant. Since some spells give 4 in one move,
-      #     probably safe to use 8+
-      huristic_run = Benchmark.realtime do
-        # 1. dropping hopeless variations
-        lowest_distance = prime_specifics[:distance_from_target][:distance]
+          no_longer_tolerable_distance =
+            # the further in we are, the less forgiving of bad variations we are
+            if penultimate_iteration
+              lowest_distance + DISTANCE_CUTOFF_DELTA - 1
+            else
+              lowest_distance + DISTANCE_CUTOFF_DELTA
+            end
 
-        no_longer_tolerable_distance =
-          # the further in we are, the less forgiving of bad variations we are
-          if penultimate_iteration
-            lowest_distance + DISTANCE_CUTOFF_DELTA - 1
-          else
-            lowest_distance + DISTANCE_CUTOFF_DELTA
-          end
+          cutoff_index = nil
 
-        cutoff_index = nil
+          # binding.pry if generation == 4
 
-        # binding.pry if generation == 4
+          data.each.with_index do |(new_path, specifics), i|
+            if specifics[:distance_from_target][:distance] < no_longer_tolerable_distance
+              next
+            end
 
-        data.each.with_index do |(new_path, specifics), i|
-          if specifics[:distance_from_target][:distance] < no_longer_tolerable_distance
-            next
-          end
-
-          # detects no progress towards target past the halfway mark, pure idling here.
-          if past_halfway
-            if specifics[:distance_from_target][:distance] <= initial_distance_from_target[:distance]
-              if specifics[:distance_from_target][:bonus] <= initial_distance_from_target[:bonus]
-                cutoff_index = i
-                break
+            # detects no progress towards target past the halfway mark, pure idling here.
+            if past_halfway
+              if specifics[:distance_from_target][:distance] <= initial_distance_from_target[:distance]
+                if specifics[:distance_from_target][:bonus] <= initial_distance_from_target[:bonus]
+                  cutoff_index = i
+                  break
+                end
               end
             end
+
+            cutoff_index = i
+            break
           end
 
-          cutoff_index = i
-          break
+          if cutoff_index
+            debug("Cutoff at index #{ cutoff_index } from #{ data.size }")
+            data = data[0..(cutoff_index-1)]
+          else
+            debug(
+              "Nothing to cut off, "\
+              "closest variant has #{ prime_specifics[:distance_from_target] }, "\
+              "and furthest has #{ data.last[1][:distance_from_target] }"
+            ) if past_halfway
+          end
         end
+        debug("Heuristic filter run took #{ (heuristic_run * 1000).round(1) }ms")
 
-        if cutoff_index
-          debug("Cutoff at index #{ cutoff_index } from #{ data.size }")
-          data = data[0..(cutoff_index-1)]
-        else
-          debug("Nothing to cut off, closest variant has #{ prime_specifics[:distance_from_target] }, and furthest has #{ data.last[1][:distance_from_target] }")
+        positions = {}
+
+        data.each do |variation_path, specifics|
+          positions[variation_path] = specifics[:outcome]
         end
-      end
-      debug("Huristic filter run took #{ (huristic_run * 1000).round(1) }ms")
+      end * 1000
 
-      positions = {}
+      ms_spent += generation_runtime
 
-      data.each do |variation_path, specifics|
-        positions[variation_path] = specifics[:outcome]
-      end
+      debug("Gen #{ generation } ran for #{ generation_runtime }, totalling #{ ms_spent }")
     end
   end
 
@@ -505,12 +512,45 @@ class GameSimulator
   def moves_from(position:, skip_resting: false, skip_learning: false)
     moves = []
 
+    all_spells_rested = true
+    givers_i_know = nil
+
     position[:actions].each do |id, action|
       type = action_type(action)
 
+      # TODO binding.pry learning skip is dangerous because there are cases when
+      # learnign can be useful just for the tax gains
       if type == "LEARN" && !skip_learning
-        moves << "LEARN #{ id }"
+        try_learning =
+          if PURE_GIVER_IDS.include?(id)
+            true
+          else
+            givers_needed = action[1..4].map{ |v| v.negative? } #=> [false, false, true, false]
+
+            givers_i_know ||= position[:actions].select do |id, action|
+              action_type(action) == "CAST" && !action[1..4].find{ |v| v.negative? }
+            end.each_with_object([false, false, false, false]) do |(id, giver), mem|
+              mem[0] ||= giver[1].positive?
+              mem[1] ||= giver[2].positive?
+              mem[2] ||= giver[3].positive?
+              mem[3] ||= giver[4].positive?
+            end
+
+            even_one_required_but_no_giver =
+              givers_needed.find.with_index do |req, i|
+                req && !givers_i_know[i]
+              end
+
+            !even_one_required_but_no_giver
+          end
+
+        moves << "LEARN #{ id }" if try_learning
       elsif type == "CAST"
+        unless action[5] # oops, exhausted
+          all_spells_rested = false
+          next
+        end
+
         times = possible_cast_times(spell: action, inv: position[:me][0..3])
 
         next if times == 0
@@ -526,7 +566,8 @@ class GameSimulator
       end
     end
 
-    if !skip_resting && !position[:me][6].to_s.start_with?("REST")
+    if skip_resting || position[:me][6].to_s.start_with?("REST") || all_spells_rested
+    else
       moves << "REST"
     end
 

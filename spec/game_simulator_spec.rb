@@ -722,7 +722,8 @@ RSpec.describe GameSimulator do
             78 => ["CAST",  2, 0, 0, 0, true, false],
             85 => {type:"OPPONENT_CAST", delta0: 0, delta1:0, delta2:-1, delta3:1, price: 0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
             86 => ["CAST",  0, -2, 2, 0, true, true],
-            87 => ["CAST",  0, 2, -1, 0, false, true]
+            87 => ["CAST",  0, 2, -1, 0, false, true],
+            88 => ["CAST",  0, 0, 0, 1, false, false]
           },
           me: [0, 4, 0, 0, 0, 1, ""]
         }
@@ -739,15 +740,83 @@ RSpec.describe GameSimulator do
       let(:position) do
         {
           actions: {
-            24 => ["LEARN", 0, 3, 0, -1, 0, 0],
-            78 => ["CAST",  2, 0, 0, 0, true, false],
+            78 => ["CAST",  2, 0, 0, 0, false, false], # this is fake, never will a spell be exhausted after resting
           },
           me: [0, 4, 0, 0, 0, 1, "REST"]
         }
       end
 
       it "does not include resting among moves to try" do
-        is_expected.to contain_exactly("LEARN 24", "CAST 78")
+        is_expected.to be_empty
+      end
+    end
+
+    context "when didn't just rest, but all spells are off cooldown" do
+      let(:position) do
+        {
+          actions: {
+            78 => ["CAST",  2, 0, 0, 0, true, false],
+            80 => ["CAST",  -2, 2, 0, 0, true, true],
+          },
+          me: [2, 4, 0, 0, 0, 1, "LEARN 8"]
+        }
+      end
+
+      it "does not include resting among moves to try" do
+        is_expected.to contain_exactly("CAST 78", "CAST 80")
+      end
+    end
+
+    context "when there are learnable spells that take expensive, not easily made inputs" do
+      let(:position) do
+        {
+          actions: {
+            6 => ["LEARN", 2, 1, -2, 1, 0, 0],
+            36 => ["LEARN", 0, -3, 3, 0, 1, 0],
+            35 => ["LEARN", 0, 0, -3, 3, 2, 0],
+            19 => ["LEARN", 0, 2, -1, 0, 3, 0],
+            14 => ["LEARN", 0, 0, 0, 1, 4, 0],
+            1 => ["LEARN", 3, -1, 0, 0, 5, 0],
+            78 => ["CAST", 2, 0, 0, 0, true, false],
+            79 => ["CAST", -1, 1, 0, 0, false, false],
+            80 => ["CAST", 0, -1, 1, 0, true, false],
+            81 => ["CAST", 0, 0, -1, 1, true, false],
+            85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          },
+          me: [3, 1, 1, 0, 0, 1, ""]
+        }
+      end
+
+      it "returns an array of moves that excludes learning those spells" do
+        is_expected.to contain_exactly("CAST 78", "CAST 80", "CAST 81", "LEARN 14", "REST")
+      end
+    end
+
+    context "when there are learnable spells that take expensive, not easily made inputs, and I know giver spell" do
+      let(:position) do
+        {
+          actions: {
+            35 => ["LEARN", 0, 0, -3, 3, 0, 1],
+            19 => ["LEARN", 0, 2, -1, 0, 1, 1],
+            1 => ["LEARN", 3, -1, 0, 0, 2, 1],
+            18 => ["LEARN", -1, -1, 0, 1, 3, 0],
+            9 => ["LEARN", 2, -3, 2, 0, 4, 0],
+            24 => ["LEARN", 0, 3, 0, -1, 5, 0], # the degen we should consider
+            78 => ["CAST", 2, 0, 0, 0, false, false],
+            79 => ["CAST", -1, 1, 0, 0, true, false],
+            80 => ["CAST", 0, -1, 1, 0, true, false],
+            81 => ["CAST", 0, 0, -1, 1, true, false],
+            87 => ["CAST", 0, 0, 0, 1, true, false],
+            88 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>-3, :delta2=>3, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          },
+          me: [2, 0, 0, 0, 0, 3, "LEARN 14 let's brew 52 via [LEARN 14, CAST 82, REST, CAST 82, CAST 78]"]
+        }
+      end
+
+      it "returns an array of moves that includes learning those spells" do
+        is_expected.to contain_exactly(
+          "CAST 79", "CAST 87", "LEARN 24", "REST"
+        )
       end
     end
   end

@@ -64,6 +64,34 @@ class GameTurn
     move = nil
     # realtime
     elapsed = Benchmark.realtime do
+      # GameSimulator::PURE_GIVER_IDS
+
+      if me[5] < 20 # before 20th turn
+        closest_pure_giver_spell =
+          tomes.find do |id, tome|
+            GameSimulator::PURE_GIVER_IDS.include?(id)
+          end
+        #=> [id, tome]
+
+        if closest_pure_giver_spell
+          tax_for_giver = [closest_pure_giver_spell[1][5]-1, 0].max
+
+          the_moves = GameSimulator.the_instance.moves_towards(
+            start: position, target: [tax_for_giver, 0, 0, 0]
+          )
+
+          move =
+            if the_moves == []
+              # oh, already there, let's learn
+              "LEARN #{ closest_pure_giver_spell[0] }"
+            else
+              "#{ the_moves.first } let's try learning #{ closest_pure_giver_spell[0] } via [#{ the_moves.join(", ") }]"
+            end
+
+          return move
+        end
+      end
+
       leftmost_potion_with_bonus = potions.find{ |id, potion| potion[:tome_index] == 3 }
       #[id, potion]
 
