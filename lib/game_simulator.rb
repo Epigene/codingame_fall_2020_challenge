@@ -301,7 +301,7 @@ class GameSimulator
 
   MY_MOVES = ["CAST", "LEARN"].to_set.freeze
   DISTANCE_CUTOFF_DELTA = 6
-  MAXIMUM_DEPTH = 10
+  MAXIMUM_DEPTH = 6
 
   # This is the brute-forcing component.
   # Uses heuristics to try most promising paths first
@@ -521,6 +521,11 @@ class GameSimulator
     all_spells_rested = true
     givers_i_know = nil
 
+    spells =
+      position[:actions].select do |id, action|
+        action_type(action) == "CAST"
+      end
+
     position[:actions].each do |id, action|
       type = action_type(action)
 
@@ -530,11 +535,14 @@ class GameSimulator
         try_learning =
           if PURE_GIVER_IDS.include?(id)
             true
+          elsif spells.size >= 8
+            false
+          # elsif # TODO, consider not learning [-5] spells if an advanced aqua giver is not known
           else
             givers_needed = action[1..4].map{ |v| v.negative? } #=> [false, false, true, false]
 
-            givers_i_know ||= position[:actions].select do |id, action|
-              action_type(action) == "CAST" && !action[1..4].find{ |v| v.negative? }
+            givers_i_know ||= spells.select do |id, action|
+              !action[1..4].find{ |v| v.negative? }
             end.each_with_object([false, false, false, false]) do |(id, giver), mem|
               mem[0] ||= giver[1].positive?
               mem[1] ||= giver[2].positive?
