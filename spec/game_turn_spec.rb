@@ -238,6 +238,42 @@ RSpec.describe GameTurn do
         is_expected.to start_with("CAST 78") # followed by rest and another "CAST 78"
       end
     end
+
+    context "when it's a real situation that times out" do
+      let(:actions) do
+        {
+          77 => {:type=>"BREW", :delta0=>-1, :delta1=>-1, :delta2=>-1, :delta3=>-3, :price=>21, :tome_index=>1, :tax_count=>4, :castable=>false, :repeatable=>false},
+          74 => {:type=>"BREW", :delta0=>-3, :delta1=>-1, :delta2=>-1, :delta3=>-1, :price=>14, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          68 => {:type=>"BREW", :delta0=>-1, :delta1=>0, :delta2=>-2, :delta3=>-1, :price=>12, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          76 => {:type=>"BREW", :delta0=>-1, :delta1=>-1, :delta2=>-3, :delta3=>-1, :price=>18, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          65 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>0, :delta3=>-5, :price=>20, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          20 => ["LEARN", 2, -2, 0, 1, 0, 0],
+          34 => ["LEARN", -2, 0, -1, 2, 1, 0],
+          33 => ["LEARN", -5, 0, 3, 0, 2, 0],
+          26 => ["LEARN", 1, 1, 1, -1, 3, 0],
+          7 => ["LEARN", 3, 0, 1, -1, 4, 0],
+          37 => ["LEARN", -3, 3, 0, 0, 5, 0],
+          78 => ["CAST", 2, 0, 0, 0, true, false],
+          79 => ["CAST", -1, 1, 0, 0, true, false],
+          80 => ["CAST", 0, -1, 1, 0, true, false],
+          81 => ["CAST", 0, 0, -1, 1, true, false],
+          87 => ["CAST", 0, 0, 0, 1, false, false],
+          92 => ["CAST", 0, 2, 0, 0, false, false],
+          95 => ["CAST", 0, 3, 0, -1, false, true],
+          97 => ["CAST", 1, -3, 1, 1, false, true],
+          98 => ["CAST", -5, 0, 0, 2, true, true],
+          99 => {:type=>"OPPONENT_CAST", :delta0=>-5, :delta1=>0, :delta2=>0, :delta3=>2, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>true},
+        }
+      end
+
+      let(:me) { [0, 0, 0, 0, 44, 23, "BREW 75"] }
+
+      it "shouldn't time out those 50ms" do
+        is_expected.to eq("REST")
+        # "let's brew 74 via [REST, CAST 87, CAST 95, CAST 78, CAST 97, CAST 92]"
+        #                 or [REST, CAST 87, CAST 78, CAST 95, CAST 97, CAST 92]"
+      end
+    end
   end
 
   describe "array vs hash dup" do

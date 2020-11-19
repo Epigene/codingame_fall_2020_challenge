@@ -301,6 +301,7 @@ class GameSimulator
 
   MY_MOVES = ["CAST", "LEARN"].to_set.freeze
   DISTANCE_CUTOFF_DELTA = 6
+  MAXIMUM_DEPTH = 10
 
   # This is the brute-forcing component.
   # Uses heuristics to try most promising paths first
@@ -308,7 +309,9 @@ class GameSimulator
   # @start [Hash] # the starting position, actions and me expected
   #
   # @return [Array<String>]
-  def moves_towards(target:, start:, path: [], max_depth: 6, depth: 0)
+  def moves_towards(target:, start:, path: [], max_depth: MAXIMUM_DEPTH, depth: 0)
+    moves_to_return = nil
+
     initial_distance_from_target = distance_from_target(
       target: target, inv: start[:me][0..3]
     )
@@ -326,13 +329,14 @@ class GameSimulator
 
     positions = {path => start}
 
-    closest_so_far = nil
-
     ms_spent = 0.0
 
     (1..max_depth).to_a.each do |generation|
+      break if moves_to_return
+
+      past_halfway = generation >= (max_depth / 2).next
+
       generation_runtime = Benchmark.realtime do
-        past_halfway = generation >= (max_depth / 2).next
         debug("Starting move and outcome crunch for generation #{ generation }") if past_halfway
         # debug("There are #{ positions.keys.size } positions to check moves for")
 
@@ -415,72 +419,74 @@ class GameSimulator
 
         if return_prime_candidate
           debug("Returning prime candidate because #{ return_prime_candidate }")
-          return prime_candidate[0]
-        end
+          moves_to_return = prime_candidate[0]
+        else
+          # no move got us there, lets go deeper.
+          # here's we can inject heuristics of which results to keep and drop for next gen
+          # 1. drop outcomes that are too far behind the best variant. Since some spells give 4 in one move,
+          #     probably safe to use 8+
+          heuristic_run = Benchmark.realtime do
+            # 1. dropping hopeless variations
+            lowest_distance = prime_specifics[:distance_from_target][:distance]
 
-        # no move got us there, lets go deeper.
-        # here's we can inject heuristics of which results to keep and drop for next gen
-        # 1. drop outcomes that are too far behind the best variant. Since some spells give 4 in one move,
-        #     probably safe to use 8+
-        heuristic_run = Benchmark.realtime do
-          # 1. dropping hopeless variations
-          lowest_distance = prime_specifics[:distance_from_target][:distance]
+            no_longer_tolerable_distance =
+              # the further in we are, the less forgiving of bad variations we are
+              if penultimate_iteration
+                lowest_distance + DISTANCE_CUTOFF_DELTA - 1
+              else
+                lowest_distance + DISTANCE_CUTOFF_DELTA
+              end
 
-          no_longer_tolerable_distance =
-            # the further in we are, the less forgiving of bad variations we are
-            if penultimate_iteration
-              lowest_distance + DISTANCE_CUTOFF_DELTA - 1
-            else
-              lowest_distance + DISTANCE_CUTOFF_DELTA
-            end
+            cutoff_index = nil
 
-          cutoff_index = nil
+            # binding.pry if generation == 4
 
-          # binding.pry if generation == 4
+            data.each.with_index do |(new_path, specifics), i|
+              if specifics[:distance_from_target][:distance] < no_longer_tolerable_distance
+                next
+              end
 
-          data.each.with_index do |(new_path, specifics), i|
-            if specifics[:distance_from_target][:distance] < no_longer_tolerable_distance
-              next
-            end
-
-            # detects no progress towards target past the halfway mark, pure idling here.
-            if past_halfway
-              if specifics[:distance_from_target][:distance] <= initial_distance_from_target[:distance]
-                if specifics[:distance_from_target][:bonus] <= initial_distance_from_target[:bonus]
-                  cutoff_index = i
-                  break
+              # detects no progress towards target past the halfway mark, pure idling here.
+              if past_halfway
+                if specifics[:distance_from_target][:distance] <= initial_distance_from_target[:distance]
+                  if specifics[:distance_from_target][:bonus] <= initial_distance_from_target[:bonus]
+                    cutoff_index = i
+                    break
+                  end
                 end
               end
+
+              cutoff_index = i
+              break
             end
 
-            cutoff_index = i
-            break
+            if cutoff_index
+              debug("Cutoff at index #{ cutoff_index } from #{ data.size }")
+              data = data[0..(cutoff_index-1)]
+            else
+              debug(
+                "Nothing to cut off, "\
+                "closest variant has #{ prime_specifics[:distance_from_target] }, "\
+                "and furthest has #{ data.last[1][:distance_from_target] }"
+              ) if past_halfway
+            end
           end
+          debug("Heuristic filter run took #{ (heuristic_run * 1000).round(1) }ms")
 
-          if cutoff_index
-            debug("Cutoff at index #{ cutoff_index } from #{ data.size }")
-            data = data[0..(cutoff_index-1)]
-          else
-            debug(
-              "Nothing to cut off, "\
-              "closest variant has #{ prime_specifics[:distance_from_target] }, "\
-              "and furthest has #{ data.last[1][:distance_from_target] }"
-            ) if past_halfway
+          positions = {}
+
+          data.each do |variation_path, specifics|
+            positions[variation_path] = specifics[:outcome]
           end
-        end
-        debug("Heuristic filter run took #{ (heuristic_run * 1000).round(1) }ms")
-
-        positions = {}
-
-        data.each do |variation_path, specifics|
-          positions[variation_path] = specifics[:outcome]
         end
       end * 1000
 
       ms_spent += generation_runtime
 
-      debug("Gen #{ generation } ran for #{ generation_runtime }, totalling #{ ms_spent }")
+      debug("Gen #{ generation } ran for #{ generation_runtime }, totalling #{ ms_spent }") if past_halfway
     end
+
+    moves_to_return
   end
 
   # This is the evaluator method.

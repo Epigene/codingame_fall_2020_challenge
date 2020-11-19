@@ -92,7 +92,8 @@ class GameTurn
         end
       end
 
-      leftmost_potion_with_bonus = potions.find{ |id, potion| potion[:tome_index] == 3 }
+      leftmost_potion_with_bonus =
+        potions.find { |id, potion| potion[:tome_index] == 3 }
       #[id, potion]
 
       potion_to_work_towards =
