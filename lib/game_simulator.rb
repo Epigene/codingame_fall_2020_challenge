@@ -26,6 +26,9 @@ class GameSimulator
     30 => [-4, 0, 1, 1, true, false, 3], # OK
     34 => [-2, 0, -1, 2, true, false, 3], # OK, takes two givers
 
+    31 => [0, 3, 2, -2, true, false, 4], # degen. excellent if you have [0, 0, 0, 1]
+
+
     0 => [-3, 0, 0, 1, true, false, 1], # so-so-to-OK
     21 => [-3, 1, 1, 0, true, false, 2], # so-so, lossy
     37 => [-3, 3, 0, 0, true, false, 3], # so-so-to-OK
@@ -45,7 +48,6 @@ class GameSimulator
     26 => [1, 1, 1, -1, true, false, 2], # degen, excellent multicast
     27 => [1, 2, -1, 0, true, false, 2], # degen, good multicast
     28 => [4, 1, -1, 0, true, false, 3], # degen, low chance to multicast :(
-    31 => [0, 3, 2, -2, true, false, 4], # degen
     32 => [1, 1, 3, -2, true, false, 4], # degen
     36 => [0, -3, 3, 0, true, false, 3], # so-so
     35 => [0, 0, -3, 3, true, false, 3], # so-so
@@ -536,11 +538,32 @@ class GameSimulator
         action_type(action) == "CAST"
       end
 
+    tomes =
+      position[:actions].select do |id, action|
+        action_type(action) == "LEARN"
+      end
+
+    aquas_on_hand = position[:me][0]
+
+    # returns a net gain of 0 if can't afford learning tax anyway
+    net_aqua_gains_from_learning =
+      tomes.map do |id, tome|
+        gain =
+          if aquas_on_hand >= tome[5]
+            tome[6] - tome[5]
+          else
+            0
+          end
+
+        [id, gain]
+      end
+
+    # can also give 0 and 1 aqua, beware
+    best_aqua_giver_from_learning = net_aqua_gains_from_learning.max_by{ |id, gain| gain }
+
     position[:actions].each do |id, action|
       type = action_type(action)
 
-      # TODO binding.pry learning skip is dangerous because there are cases when
-      # learnign can be useful just for the tax gains
       if type == "LEARN" && !skip_learning
         try_learning =
           if PURE_GIVER_IDS.include?(id)
@@ -579,6 +602,18 @@ class GameSimulator
 
         next if times == 0
 
+        # givers can ever only be cast once
+        if times == 1
+          only_gives_aquas =
+            action[1].positive? && action[2].zero? && action[3].zero? && action[4].zero?
+
+          # preferring to get aquas by learning
+          if only_gives_aquas && best_aqua_giver_from_learning && best_aqua_giver_from_learning[1] >= action[1]
+            moves << "LEARN #{ best_aqua_giver_from_learning[0] }"
+            next
+          end
+        end
+
         times.times do |i|
           moves <<
             if i == 0
@@ -595,7 +630,7 @@ class GameSimulator
       moves << "REST"
     end
 
-    moves
+    moves.uniq
   end
 
   # Returns ways can this spell can be cast in. 0, 1 or n(multicast) variants possible.

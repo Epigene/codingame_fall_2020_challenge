@@ -239,6 +239,36 @@ RSpec.describe GameTurn do
       end
     end
 
+    context "when it's a real situation where learning a strategic degenerator is the way to go" do
+      let(:actions) do
+        {
+          57 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-2, :delta3=>-2, :price=>17, :tome_index=>3, :tax_count=>4, :castable=>false, :repeatable=>false},
+          50 => {:type=>"BREW", :delta0=>-2, :delta1=>0, :delta2=>0, :delta3=>-2, :price=>11, :tome_index=>1, :tax_count=>4, :castable=>false, :repeatable=>false},
+          44 => {:type=>"BREW", :delta0=>0, :delta1=>-4, :delta2=>0, :delta3=>0, :price=>8, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          77 => {:type=>"BREW", :delta0=>-1, :delta1=>-1, :delta2=>-1, :delta3=>-3, :price=>20, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          66 => {:type=>"BREW", :delta0=>-2, :delta1=>-1, :delta2=>0, :delta3=>-1, :price=>9, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          1 => ["LEARN", 3, -1, 0, 0, 0, 2],
+          35 => ["LEARN", 0, 0, -3, 3, 1, 2],
+          31 => ["LEARN", 0, 3, 2, -2, 2, 2], # ultimate goal
+          5 => ["LEARN", 2, 3, -2, 0, 3, 0],
+          30 => ["LEARN", -4, 0, 1, 1, 4, 0],
+          17 => ["LEARN", -2, 0, 1, 0, 5, 0],
+          78 => ["CAST", 2, 0, 0, 0, true, false],
+          79 => ["CAST", -1, 1, 0, 0, true, false],
+          80 => ["CAST", 0, -1, 1, 0, true, false],
+          81 => ["CAST", 0, 0, -1, 1, true, false],
+          86 => ["CAST", 0, 0, 0, 1, true, false],
+          87 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>0, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+        }
+      end
+
+      let(:me) { [0, 0, 0, 0, 0, 2, "LEARN 14"] }
+
+      it "returns a move to learn the first spell, which will give tax rebate and allow learning the very situationally awesome 31" do
+        is_expected.to start_with("LEARN 1")
+      end
+    end
+
     context "when it's a real situation that times out" do
       let(:actions) do
         {

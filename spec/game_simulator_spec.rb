@@ -574,6 +574,34 @@ RSpec.describe GameSimulator do
       end
     end
 
+    context "when position is such that to get 2 more Aquas the best move is to learn the first spell" do
+      let(:target) { [2, 0, 0, 1] }
+
+      let(:start) do
+        {
+          actions: {
+            35 => ["LEARN", 0, 0, -3, 3, 0, 2], # yeah, baby, get aquas from tax
+            31 => ["LEARN", 0, 3, 2, -2, 1, 2],
+            5 => ["LEARN", 2, 3, -2, 0, 2, 0],
+            30 => ["LEARN", -4, 0, 1, 1, 3, 0],
+            17 => ["LEARN", -2, 0, 1, 0, 4, 0],
+            41 => ["LEARN", 0, 0, 2, -1, 5, 0],
+            78 => ["CAST", 2, 0, 0, 0, true, false],
+            79 => ["CAST", -1, 1, 0, 0, true, false],
+            80 => ["CAST", 0, -1, 1, 0, true, false],
+            81 => ["CAST", 0, 0, -1, 1, true, false],
+            86 => ["CAST", 0, 0, 0, 1, false, false],
+            88 => {:type=>"OPPONENT_CAST", :delta0=>3, :delta1=>-1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          },
+          me: [0, 0, 0, 1, 0, 3, "CAST 86"]
+        }
+      end
+
+      it "opts to get aquas from spell tax" do
+        is_expected.to eq(["LEARN 35"])
+      end
+    end
+
     context "when position is such that learning an imba pure giver and a situational degenerator are the best moves" do
       xit "prefers getting the imba spell first, then the degen, and knows to save up" do
         expect(0).to eq(1)
@@ -707,8 +735,9 @@ RSpec.describe GameSimulator do
     end
   end
 
-  describe "#moves_from(position:)" do
-    subject(:moves_from) { instance.moves_from(position: position) }
+  describe "#moves_from(position:, skip_resting: false, skip_learning: false)" do
+    subject(:moves_from) { instance.moves_from(**options) }
+    let(:options) { {position: position} }
 
     context "when all categories of actions are possible" do
       # - learning
@@ -817,6 +846,71 @@ RSpec.describe GameSimulator do
         is_expected.to contain_exactly(
           "CAST 79", "CAST 87", "LEARN 24", "REST"
         )
+      end
+    end
+
+    context "when position allows getting two Aquas from learning 1st spell" do
+      let(:position) do
+        {
+          actions: {
+            35 => ["LEARN", 0, 0, -3, 3, 0, 2],
+            31 => ["LEARN", 0, 2, 0, 0, 1, 2],
+            78 => ["CAST", 2, 0, 0, 0, true, false],
+            79 => ["CAST", -1, 1, 0, 0, true, false],
+            80 => ["CAST", 1, 1, 0, 0, true, false],
+          },
+          me: [1, 0, 0, 1, 0, 3, "CAST 86 let's brew 57 via [CAST 86, REST, CAST 86, CAST 78, CAST 79, CAST 80]"]
+        }
+      end
+
+      it "returns a set of moves that have learning, and not casting [2,0,0,0]" do
+        is_expected.to contain_exactly("LEARN 35", "LEARN 31", "CAST 79", "CAST 80")
+      end
+    end
+
+    context "when position allows getting net two Aquas from learning 3rd spell, and I can pay tax" do
+      let(:options) { super().merge(skip_learning: true) }
+
+      let(:position) do
+        {
+          actions: {
+            35 => ["LEARN", 0, 0, -3, 3, 0, 1],
+            31 => ["LEARN", 0, 2, 0, 0, 1, 1],
+            32 => ["LEARN", 0, 2, 0, 0, 2, 4],
+            78 => ["CAST", 2, 0, 0, 0, true, false],
+            79 => ["CAST", -1, 1, 0, 0, true, false],
+            80 => ["CAST", 1, 1, 0, 0, true, false],
+            81 => ["CAST", 3, 1, 0, 0, true, false],
+          },
+          me: [2, 0, 0, 1, 0, 3, "CAST 86 let's brew 57 via [CAST 86, REST, CAST 86, CAST 78, CAST 79, CAST 80]"]
+        }
+      end
+
+      it "returns a set of moves that have learning, and not casting [2,0,0,0]" do
+        is_expected.to contain_exactly("LEARN 32", "CAST 79", "CAST 80", "CAST 81")
+      end
+    end
+
+    context "when position allows getting net four Aquas from learning 2nd spell, and I can pay tax" do
+      let(:options) { super().merge(skip_learning: true) }
+
+      let(:position) do
+        {
+          actions: {
+            35 => ["LEARN", 0, 0, -3, 3, 0, 1],
+            31 => ["LEARN", 0, 2, 0, 0, 1, 5],
+            78 => ["CAST", 2, 0, 0, 0, true, false],
+            79 => ["CAST", -1, 1, 0, 0, true, false],
+            80 => ["CAST", 1, 1, 0, 0, true, false],
+            81 => ["CAST", 3, 0, 0, 0, true, false],
+            82 => ["CAST", 4, 0, 0, 0, true, false],
+          },
+          me: [2, 0, 0, 1, 0, 3, "CAST 86 let's brew 57 via [CAST 86, REST, CAST 86, CAST 78, CAST 79, CAST 80]"]
+        }
+      end
+
+      it "returns a set of moves that have learning, and not casting [2,0,0,0], nor [3,0,0,0], nor [4,0,0,0]" do
+        is_expected.to contain_exactly("LEARN 31", "CAST 79", "CAST 80")
       end
     end
   end

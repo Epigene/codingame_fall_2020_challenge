@@ -64,9 +64,7 @@ class GameTurn
     move = nil
     # realtime
     elapsed = Benchmark.realtime do
-      # GameSimulator::PURE_GIVER_IDS
-
-      if me[5] < 20 # before 20th turn
+      if me[5] < 10 # before 20th turn
         closest_pure_giver_spell =
           tomes.find do |id, tome|
             GameSimulator::PURE_GIVER_IDS.include?(id)
@@ -90,6 +88,12 @@ class GameTurn
 
           return move
         end
+      end
+
+      if me[5] < 4 # before 4th turn, hardcoded learning
+        # binding.pry
+        # givers_i_know
+        # tomes
       end
 
       leftmost_potion_with_bonus =
@@ -144,6 +148,18 @@ class GameTurn
       @my_spells ||= actions.to_a.
         select{ |id, action| action_type(action) == "CAST" }.
         to_h
+    end
+
+    # @return [bool, bool, bool, bool]
+    def givers_i_know
+      givers_i_know ||= my_spells.select do |id, action|
+        !action[1..4].find{ |v| v.negative? }
+      end.each_with_object([false, false, false, false]) do |(id, giver), mem|
+        mem[0] ||= giver[1].positive?
+        mem[1] ||= giver[2].positive?
+        mem[2] ||= giver[3].positive?
+        mem[3] ||= giver[4].positive?
+      end
     end
 
     def tomes
