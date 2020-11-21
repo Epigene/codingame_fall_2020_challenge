@@ -69,6 +69,7 @@ class GameSimulator
     40 => [0, -2, 2, 0, true, false, 2], # OK
     30 => [-4, 0, 1, 1, true, false, 3], # OK
     34 => [-2, 0, -1, 2, true, false, 3], # OK, takes two givers
+    33 => [-5, 0, 3, 0, true, false, 4], # OK, one of the rare spells with net+ of 4
 
     # Tactical degens, ony from orange and yello for now
     31 => [0, 3, 2, -2, true, false, 4], # degen. excellent if you have [0, 0, 0, 1]
@@ -83,14 +84,13 @@ class GameSimulator
     0 => [-3, 0, 0, 1, true, false, 1], # so-so-to-OK
     21 => [-3, 1, 1, 0, true, false, 2], # so-so, lossy
     37 => [-3, 3, 0, 0, true, false, 3], # so-so-to-OK
-    1 => [3, -1, 0, 0, true, false, 1], # degen
     6 => [2, 1, -2, 1, true, false, 2], # so-so, lossy
 
     10 => [2, 2, 0, -1, true, false, 2], # degen
     24 => [0, 3, 0, -1, true, false, 2], # degen
     22 => [0, 2, -2, 1, true, false, 2], # so-so, twist
     28 => [4, 1, -1, 0, true, false, 3], # degen, low chance to multicast :(
-    35 => [0, 0, -3, 3, true, false, 3], # so-so
+    35 => [0, 0, -3, 3, true, false, 3], # so-so, situational, when are you gonna have 3 oranges?
     8 => [3, -2, 1, 0, true, false, 2], # so-so, lossy
     9 => [2, -3, 2, 0, true, false, 2], # so-so, lossy
     20 => [2, -2, 0, 1, true, false, 2], # so-so, lossy
@@ -98,8 +98,8 @@ class GameSimulator
     25 => [0, -3, 0, 2, true, false, 2], # so-so
     36 => [0, -3, 3, 0, true, false, 3], # so-so
     11 => [-4, 0, 2, 0, true, false, 2], # so-so, bad version of 17
-    33 => [-5, 0, 3, 0, true, true, 4], # so-so
-    29 => [-5, 0, 0, 2, true, true, 3], # mehh
+    29 => [-5, 0, 0, 2, true, false, 3], # mehh, situational
+    1 => [3, -1, 0, 0, true, true, 1], # degen, extremely situational
   }.freeze
 
   LEARNED_SPELL_DATA = {
@@ -832,7 +832,8 @@ class GameTurn
           end
         #=> [id, tome]
 
-        if closest_pure_giver_spell
+        #                              never learn pure givers in 6th tome spot, too expensive
+        if closest_pure_giver_spell && closest_pure_giver_spell[1][5] >= 5
           tax_for_giver = [closest_pure_giver_spell[1][5], 0].max
 
           the_moves = GameSimulator.the_instance.moves_towards(
@@ -861,7 +862,7 @@ class GameTurn
           tomes.find do |id, tome|
             next unless GameSimulator::TACTICAL_DEGENERATORS.include?(id)
 
-            i_have_a_givers_for_what_this_spell_takes =
+            _i_have_a_givers_for_what_this_spell_takes =
               if tome[3].negative?
                 givers_i_know[2]
               elsif tome[4].negative?
@@ -886,6 +887,24 @@ class GameTurn
 
           return move
         end
+      end
+
+      if me[5] < 4 && givers_i_know[1] # i know green givers
+        # identify tactical advantage in learning a green transmuter
+        # binding.pry
+
+        closest_green_user =
+          tomes.find do |id, tome|
+            next if id == 1 # LEARN 1 is very bad
+
+            tome[2].negative? && tome[5] <= me[0]
+          end
+
+        if closest_green_user
+          return "LEARN #{ closest_green_user[0] } learning useful transmuter that uses green"
+        end
+
+        # if I have green givers and the spell takes greens (an is not LEARN 1)
       end
 
       leftmost_potion_with_bonus =

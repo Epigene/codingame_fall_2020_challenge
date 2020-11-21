@@ -71,7 +71,8 @@ class GameTurn
           end
         #=> [id, tome]
 
-        if closest_pure_giver_spell
+        #                              never learn pure givers in 6th tome spot, too expensive
+        if closest_pure_giver_spell && closest_pure_giver_spell[1][5] >= 5
           tax_for_giver = [closest_pure_giver_spell[1][5], 0].max
 
           the_moves = GameSimulator.the_instance.moves_towards(
@@ -127,7 +128,7 @@ class GameTurn
         end
       end
 
-      if me[5] < 10 && givers_i_know[1] # i know green givers
+      if me[5] < 4 && givers_i_know[1] # i know green givers
         # identify tactical advantage in learning a green transmuter
         # binding.pry
 
