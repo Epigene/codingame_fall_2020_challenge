@@ -854,6 +854,9 @@ class GameTurn
         # binding.pry
         # givers_i_know
         # tomes
+
+        # Starting with Yello, down to Aqua, checking if I have giver
+        # to learn a possible good degen
       end
 
       leftmost_potion_with_bonus =
@@ -880,7 +883,7 @@ class GameTurn
         end
     end
 
-    debug("move_v2 took #{ (elapsed * 1000.0).round }ms")
+    debug("finding move_v2 '#{ move }' took #{ (elapsed * 1000.0).round }ms")
 
     move
   end

@@ -6,6 +6,7 @@ class GameSimulator
   #                 78, 82 are default 1st spell ids, the [2, 0, 0, 0] spells
   PURE_GIVER_IDS = [78, 82, 2, 3, 4, 12, 13, 14, 15, 16].to_set.freeze
   GOOD_SPELL_IDS = [18, 17, 38, 39, 40, 30, 34].to_set.freeze
+  TACTICAL_DEGENERATORS = [31, 32, 41, 7, 5, 19, 26, 27].to_set.freeze
 
   LEARNABLE_SPELLS = {
     # id => [deltas,  can be multicast, hard_skip, value_per_turn]
@@ -18,6 +19,7 @@ class GameSimulator
     15 => [0, 2, 0, 0, false, false, 4], # pure giver
     16 => [1, 0, 1, 0, false, false, 4], # pure giver
 
+    # excellent transmuters
     18 => [-1, -1, 0, 1, true, false, 1], # IMBA, huge multicast potential, special in that it takes two givers
     17 => [-2, 0, 1, 0, true, false, 1], # GREAT!, better version of 11
     38 => [-2, 2, 0, 0, true, false, 2], # OK
@@ -26,35 +28,36 @@ class GameSimulator
     30 => [-4, 0, 1, 1, true, false, 3], # OK
     34 => [-2, 0, -1, 2, true, false, 3], # OK, takes two givers
 
+    # Tactical degens, ony from orange and yello for now
     31 => [0, 3, 2, -2, true, false, 4], # degen. excellent if you have [0, 0, 0, 1]
-
+    32 => [1, 1, 3, -2, true, false, 4], # degen
+    41 => [0, 0, 2, -1, true, false, 2], # degen, good chance to multicast
+    7 => [3, 0, 1, -1, true, false, 2], # degen
+    26 => [1, 1, 1, -1, true, false, 2], # degen, excellent multicast
+    5 => [2, 3, -2, 0, true, false, 2], # degen
+    19 => [0, 2, -1, 0, true, false, 1], # degen
+    27 => [1, 2, -1, 0, true, false, 2], # degen, good multicast
 
     0 => [-3, 0, 0, 1, true, false, 1], # so-so-to-OK
     21 => [-3, 1, 1, 0, true, false, 2], # so-so, lossy
     37 => [-3, 3, 0, 0, true, false, 3], # so-so-to-OK
     1 => [3, -1, 0, 0, true, false, 1], # degen
-    5 => [2, 3, -2, 0, true, false, 2], # degen
     6 => [2, 1, -2, 1, true, false, 2], # so-so, lossy
-    7 => [3, 0, 1, -1, true, false, 2], # degen
+
+    10 => [2, 2, 0, -1, true, false, 2], # degen
+    24 => [0, 3, 0, -1, true, false, 2], # degen
+    22 => [0, 2, -2, 1, true, false, 2], # so-so, twist
+    28 => [4, 1, -1, 0, true, false, 3], # degen, low chance to multicast :(
+    35 => [0, 0, -3, 3, true, false, 3], # so-so
     8 => [3, -2, 1, 0, true, false, 2], # so-so, lossy
     9 => [2, -3, 2, 0, true, false, 2], # so-so, lossy
-    10 => [2, 2, 0, -1, true, false, 2], # degen
-    19 => [0, 2, -1, 0, true, false, 1], # degen
     20 => [2, -2, 0, 1, true, false, 2], # so-so, lossy
-    22 => [0, 2, -2, 1, true, false, 2], # so-so, twist
     23 => [1, -3, 1, 1, true, false, 2], # so-so, twist
-    24 => [0, 3, 0, -1, true, false, 2], # degen
     25 => [0, -3, 0, 2, true, false, 2], # so-so
-    26 => [1, 1, 1, -1, true, false, 2], # degen, excellent multicast
-    27 => [1, 2, -1, 0, true, false, 2], # degen, good multicast
-    28 => [4, 1, -1, 0, true, false, 3], # degen, low chance to multicast :(
-    32 => [1, 1, 3, -2, true, false, 4], # degen
     36 => [0, -3, 3, 0, true, false, 3], # so-so
-    35 => [0, 0, -3, 3, true, false, 3], # so-so
     11 => [-4, 0, 2, 0, true, false, 2], # so-so, bad version of 17
     33 => [-5, 0, 3, 0, true, true, 4], # so-so
     29 => [-5, 0, 0, 2, true, true, 3], # mehh
-    41 => [0, 0, 2, -1, true, false, 2] # degen, good chance to multicast
   }.freeze
 
   LEARNED_SPELL_DATA = {
@@ -451,8 +454,6 @@ class GameSimulator
             end
 
           cutoff_index = nil
-
-          # binding.pry if generation == 4
 
           data.each.with_index do |(new_path, specifics), i|
             if specifics[:distance_from_target][:distance] < no_longer_tolerable_distance

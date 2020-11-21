@@ -64,7 +64,7 @@ class GameTurn
     move = nil
     # realtime
     elapsed = Benchmark.realtime do
-      if me[5] < 10 # before 20th turn
+      if me[5] < 10 # before 10th turn
         closest_pure_giver_spell =
           tomes.find do |id, tome|
             GameSimulator::PURE_GIVER_IDS.include?(id)
@@ -91,9 +91,40 @@ class GameTurn
       end
 
       if me[5] < 4 # before 4th turn, hardcoded learning
-        # binding.pry
-        # givers_i_know
-        # tomes
+        # identify 3rd spell as very good, by starting with Yello, down to Aqua, checking if I have giver
+
+        # determine that [2, 0, 0, 0] is the state to learn it
+        # run bruteforcer for that, make sure it returns learning
+
+        closest_tactical_transmuter =
+          tomes.find do |id, tome|
+            next unless GameSimulator::TACTICAL_DEGENERATORS.include?(id)
+
+            i_have_a_givers_for_what_this_spell_takes =
+              if tome[3].negative?
+                givers_i_know[2]
+              elsif tome[4].negative?
+                givers_i_know[3]
+              end
+          end
+
+        if closest_tactical_transmuter
+          tax_for_transmuter = [closest_tactical_transmuter[1][5], 0].max
+
+          the_moves = GameSimulator.the_instance.moves_towards(
+            start: position, target: [tax_for_transmuter, 0, 0, 0]
+          )
+
+          move =
+            if the_moves == []
+              # oh, already there, let's learn
+              "LEARN #{ closest_tactical_transmuter[0] }"
+            else
+              "#{ the_moves.first } let's try learning #{ closest_tactical_transmuter[0] } via [#{ the_moves.join(", ") }]"
+            end
+
+          return move
+        end
       end
 
       leftmost_potion_with_bonus =
@@ -120,7 +151,7 @@ class GameTurn
         end
     end
 
-    debug("move_v2 took #{ (elapsed * 1000.0).round }ms")
+    debug("finding move_v2 '#{ move }' took #{ (elapsed * 1000.0).round }ms")
 
     move
   end
