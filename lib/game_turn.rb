@@ -72,7 +72,7 @@ class GameTurn
         #=> [id, tome]
 
         #                              never learn pure givers in 6th tome spot, too expensive
-        if closest_pure_giver_spell && closest_pure_giver_spell[1][5] >= 5
+        if closest_pure_giver_spell && closest_pure_giver_spell[1][5] < 5
           tax_for_giver = [closest_pure_giver_spell[1][5], 0].max
 
           the_moves = GameSimulator.the_instance.moves_towards(
@@ -91,60 +91,60 @@ class GameTurn
         end
       end
 
-      if me[5] < 4 # before 4th turn, hardcoded learning
-        # identify 3rd spell as very good, by starting with Yello, down to Aqua, checking if I have giver
+      # if me[5] < 4 # before 4th turn, hardcoded learning
+      #   # identify 3rd spell as very good, by starting with Yello, down to Aqua, checking if I have giver
 
-        # determine that [2, 0, 0, 0] is the state to learn it
-        # run bruteforcer for that, make sure it returns learning
+      #   # determine that [2, 0, 0, 0] is the state to learn it
+      #   # run bruteforcer for that, make sure it returns learning
 
-        closest_tactical_transmuter =
-          tomes.find do |id, tome|
-            next unless GameSimulator::TACTICAL_DEGENERATORS.include?(id)
+      #   closest_tactical_transmuter =
+      #     tomes.find do |id, tome|
+      #       next unless GameSimulator::TACTICAL_DEGENERATORS.include?(id)
 
-            _i_have_a_givers_for_what_this_spell_takes =
-              if tome[3].negative?
-                givers_i_know[2]
-              elsif tome[4].negative?
-                givers_i_know[3]
-              end
-          end
+      #       _i_have_a_givers_for_what_this_spell_takes =
+      #         if tome[3].negative?
+      #           givers_i_know[2]
+      #         elsif tome[4].negative?
+      #           givers_i_know[3]
+      #         end
+      #     end
 
-        if closest_tactical_transmuter
-          tax_for_transmuter = [closest_tactical_transmuter[1][5], 0].max
+      #   if closest_tactical_transmuter
+      #     tax_for_transmuter = [closest_tactical_transmuter[1][5], 0].max
 
-          the_moves = GameSimulator.the_instance.moves_towards(
-            start: position, target: [tax_for_transmuter, 0, 0, 0]
-          )
+      #     the_moves = GameSimulator.the_instance.moves_towards(
+      #       start: position, target: [tax_for_transmuter, 0, 0, 0]
+      #     )
 
-          move =
-            if the_moves == []
-              # oh, already there, let's learn
-              "LEARN #{ closest_tactical_transmuter[0] }"
-            else
-              "#{ the_moves.first } let's try learning #{ closest_tactical_transmuter[0] } via [#{ the_moves.join(", ") }]"
-            end
+      #     move =
+      #       if the_moves == []
+      #         # oh, already there, let's learn
+      #         "LEARN #{ closest_tactical_transmuter[0] }"
+      #       else
+      #         "#{ the_moves.first } let's try learning #{ closest_tactical_transmuter[0] } via [#{ the_moves.join(", ") }]"
+      #       end
 
-          return move
-        end
-      end
+      #     return move
+      #   end
+      # end
 
-      if me[5] < 4 && givers_i_know[1] # i know green givers
-        # identify tactical advantage in learning a green transmuter
-        # binding.pry
+      # if me[5] < 4 && givers_i_know[1] # i know green givers
+      #   # identify tactical advantage in learning a green transmuter
+      #   # binding.pry
 
-        closest_green_user =
-          tomes.find do |id, tome|
-            next if id == 1 # LEARN 1 is very bad
+      #   closest_green_user =
+      #     tomes.find do |id, tome|
+      #       next if id == 1 # LEARN 1 is very bad
 
-            tome[2].negative? && tome[5] <= me[0]
-          end
+      #       tome[2].negative? && tome[5] <= me[0]
+      #     end
 
-        if closest_green_user
-          return "LEARN #{ closest_green_user[0] } learning useful transmuter that uses green"
-        end
+      #   if closest_green_user
+      #     return "LEARN #{ closest_green_user[0] } learning useful transmuter that uses green"
+      #   end
 
-        # if I have green givers and the spell takes greens (an is not LEARN 1)
-      end
+      #   # if I have green givers and the spell takes greens (an is not LEARN 1)
+      # end
 
       leftmost_potion_with_bonus =
         potions.find { |id, potion| potion[:tome_index] == 3 }
