@@ -269,6 +269,37 @@ RSpec.describe GameTurn do
       end
     end
 
+    context "when it's a no-brainer transmuter learning time" do
+      let(:actions) do
+        {
+          56 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-3, :delta3=>0, :price=>16, :tome_index=>3, :tax_count=>4, :castable=>false, :repeatable=>false},
+          51 => {:type=>"BREW", :delta0=>-2, :delta1=>0, :delta2=>-3, :delta3=>0, :price=>12, :tome_index=>1, :tax_count=>4, :castable=>false, :repeatable=>false},
+          77 => {:type=>"BREW", :delta0=>-1, :delta1=>-1, :delta2=>-1, :delta3=>-3, :price=>20, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          71 => {:type=>"BREW", :delta0=>-2, :delta1=>0, :delta2=>-2, :delta3=>-2, :price=>17, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          60 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-5, :delta3=>0, :price=>15, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          20 => ["LEARN", 2, -2, 0, 1, 0, 0], # This is it right here, we have green givers, and this is green taker
+          34 => ["LEARN", -2, 0, -1, 2, 1, 0],
+          33 => ["LEARN", -5, 0, 3, 0, 2, 0],
+          29 => ["LEARN", -5, 0, 0, 2, 3, 0],
+          21 => ["LEARN", -3, 1, 1, 0, 4, 0],
+          9 => ["LEARN", 2, -3, 2, 0, 5, 0],
+          78 => ["CAST", 2, 0, 0, 0, true, false],
+          79 => ["CAST", -1, 1, 0, 0, true, false],
+          80 => ["CAST", 0, -1, 1, 0, true, false],
+          81 => ["CAST", 0, 0, -1, 1, true, false],
+          86 => ["CAST", 0, 2, 0, 0, false, false], # pure green giver
+          88 => ["CAST", 1, 1, 0, 0, true, false], # 1, 1 pure giver
+          90 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-2, :delta3=>2, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+        }
+      end
+
+      let(:me) { [2, 2, 0, 0, 0, 4, "CAST 86"] }
+
+      it "returns the move to learn a transmuter from green, will definitely come in handly" do
+        is_expected.to start_with("LEARN 20")
+      end
+    end
+
     context "when it's a real situation that times out" do
       let(:actions) do
         {

@@ -100,7 +100,7 @@ class GameTurn
           tomes.find do |id, tome|
             next unless GameSimulator::TACTICAL_DEGENERATORS.include?(id)
 
-            i_have_a_givers_for_what_this_spell_takes =
+            _i_have_a_givers_for_what_this_spell_takes =
               if tome[3].negative?
                 givers_i_know[2]
               elsif tome[4].negative?
@@ -125,6 +125,24 @@ class GameTurn
 
           return move
         end
+      end
+
+      if me[5] < 10 && givers_i_know[1] # i know green givers
+        # identify tactical advantage in learning a green transmuter
+        # binding.pry
+
+        closest_green_user =
+          tomes.find do |id, tome|
+            next if id == 1 # LEARN 1 is very bad
+
+            tome[2].negative? && tome[5] <= me[0]
+          end
+
+        if closest_green_user
+          return "LEARN #{ closest_green_user[0] } learning useful transmuter that uses green"
+        end
+
+        # if I have green givers and the spell takes greens (an is not LEARN 1)
       end
 
       leftmost_potion_with_bonus =

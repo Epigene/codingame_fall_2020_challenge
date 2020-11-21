@@ -27,6 +27,7 @@ class GameSimulator
     40 => [0, -2, 2, 0, true, false, 2], # OK
     30 => [-4, 0, 1, 1, true, false, 3], # OK
     34 => [-2, 0, -1, 2, true, false, 3], # OK, takes two givers
+    33 => [-5, 0, 3, 0, true, false, 4], # OK, one of the rare spells with net+ of 4
 
     # Tactical degens, ony from orange and yello for now
     31 => [0, 3, 2, -2, true, false, 4], # degen. excellent if you have [0, 0, 0, 1]
@@ -41,14 +42,13 @@ class GameSimulator
     0 => [-3, 0, 0, 1, true, false, 1], # so-so-to-OK
     21 => [-3, 1, 1, 0, true, false, 2], # so-so, lossy
     37 => [-3, 3, 0, 0, true, false, 3], # so-so-to-OK
-    1 => [3, -1, 0, 0, true, false, 1], # degen
     6 => [2, 1, -2, 1, true, false, 2], # so-so, lossy
 
     10 => [2, 2, 0, -1, true, false, 2], # degen
     24 => [0, 3, 0, -1, true, false, 2], # degen
     22 => [0, 2, -2, 1, true, false, 2], # so-so, twist
     28 => [4, 1, -1, 0, true, false, 3], # degen, low chance to multicast :(
-    35 => [0, 0, -3, 3, true, false, 3], # so-so
+    35 => [0, 0, -3, 3, true, false, 3], # so-so, situational, when are you gonna have 3 oranges?
     8 => [3, -2, 1, 0, true, false, 2], # so-so, lossy
     9 => [2, -3, 2, 0, true, false, 2], # so-so, lossy
     20 => [2, -2, 0, 1, true, false, 2], # so-so, lossy
@@ -56,8 +56,8 @@ class GameSimulator
     25 => [0, -3, 0, 2, true, false, 2], # so-so
     36 => [0, -3, 3, 0, true, false, 3], # so-so
     11 => [-4, 0, 2, 0, true, false, 2], # so-so, bad version of 17
-    33 => [-5, 0, 3, 0, true, true, 4], # so-so
-    29 => [-5, 0, 0, 2, true, true, 3], # mehh
+    29 => [-5, 0, 0, 2, true, false, 3], # mehh, situational
+    1 => [3, -1, 0, 0, true, true, 1], # degen, extremely situational
   }.freeze
 
   LEARNED_SPELL_DATA = {
