@@ -68,11 +68,17 @@ class GameTurn
     # realtime
     elapsed = Benchmark.realtime do
       potion_to_work_towards = nil
+      leftmost_potion_with_bonus = nil
+
       heuristic_time = Benchmark.realtime do
+      leftmost_potion_with_bonus =
+        potions.find { |id, potion| potion[:tome_index] == 3 }
+      #[id, potion]
+
       # TODO, brewing needs a cost/benefit evaluation
       brewable_potion = potions.find { |_id, potion| i_can_brew?(potion) }
 
-      if brewable_potion
+      if brewable_potion && !leftmost_potion_with_bonus
         return "BREW #{ brewable_potion[0] } Brewin' #{ brewable_potion[0] }"
       end
 
@@ -228,10 +234,6 @@ class GameTurn
 
       #   # if I have green givers and the spell takes greens (an is not LEARN 1)
       # end
-
-      leftmost_potion_with_bonus =
-        potions.find { |id, potion| potion[:tome_index] == 3 }
-      #[id, potion]
 
       potion_to_work_towards =
         if leftmost_potion_with_bonus

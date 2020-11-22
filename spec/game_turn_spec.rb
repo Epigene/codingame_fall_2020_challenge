@@ -466,6 +466,42 @@ RSpec.describe GameTurn do
       end
     end
 
+    context "when I have all ingredients for a potion, but a better one is one turn away" do
+      let(:actions) do
+        {
+          # we want to go for this
+          58 => {:type=>"BREW", :delta0=>0, :delta1=>-3, :delta2=>0, :delta3=>-2, :price=>17, :tome_index=>3, :tax_count=>1, :castable=>false, :repeatable=>false},
+          # not this
+          54 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>-2, :price=>13, :tome_index=>1, :tax_count=>3, :castable=>false, :repeatable=>false},
+          64 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-2, :delta3=>-3, :price=>18, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          57 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-2, :delta3=>-2, :price=>14, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          44 => {:type=>"BREW", :delta0=>0, :delta1=>-4, :delta2=>0, :delta3=>0, :price=>8, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          19 => ["LEARN", 0, 2, -1, 0, 0, 1],
+          0 => ["LEARN", -3, 0, 0, 1, 1, 1],
+          1 => ["LEARN", 3, -1, 0, 0, 2, 1],
+          31 => ["LEARN", 0, 3, 2, -2, 3, 1],
+          10 => ["LEARN", 2, 2, 0, -1, 4, 1],
+          32 => ["LEARN", 1, 1, 3, -2, 5, 0],
+          82 => ["CAST", 2, 0, 0, 0, true, false],
+          83 => ["CAST", -1, 1, 0, 0, true, false],
+          84 => ["CAST", 0, -1, 1, 0, true, false],
+          85 => ["CAST", 0, 0, -1, 1, true, false],
+          88 => ["CAST", 1, 1, 0, 0, false, false],
+          90 => ["CAST", 3, 0, 1, -1, true, true],
+          92 => ["CAST", 3, -2, 1, 0, true, true],
+          94 => ["CAST", 0, 0, -3, 3, true, true],
+          96 => ["CAST", -2, 0, 1, 0, true, true],
+        }
+      end
+
+      let(:me) { [2, 2, 0, 2, 33, 29, "CAST 88 let's brew 58 via [CAST 88, CAST 83]"] }
+      let(:opp) { [2, 2, 0, 2, 33, 29, "CAST 88 let's brew 58 via [CAST 88, CAST 83]"] }
+
+      it "returns the move to try for the better variant" do
+        is_expected.to start_with("CAST 83")
+      end
+    end
+
     context "when I'm in the lead value wise and there is a giver in the 1st learn slot" do
       let(:actions) do
         {
