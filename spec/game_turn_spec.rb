@@ -402,6 +402,37 @@ RSpec.describe GameTurn do
       end
     end
 
+    context "when I have an aqua giver and there's a good transmuter in position 1" do
+      let(:actions) do
+        {
+          62 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>-3, :price=>19, :tome_index=>3, :tax_count=>4, :castable=>false, :repeatable=>false},
+          56 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-3, :delta3=>0, :price=>14, :tome_index=>1, :tax_count=>4, :castable=>false, :repeatable=>false},
+          70 => {:type=>"BREW", :delta0=>-2, :delta1=>-2, :delta2=>0, :delta3=>-2, :price=>15, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          63 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-3, :delta3=>-2, :price=>17, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          71 => {:type=>"BREW", :delta0=>-2, :delta1=>0, :delta2=>-2, :delta3=>-2, :price=>17, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          21 => ["LEARN", -3, 1, 1, 0, 0, 0], # yeah, baby
+          5 => ["LEARN", 2, 3, -2, 0, 1, 0],
+          38 => ["LEARN", -2, 2, 0, 0, 2, 0],
+          35 => ["LEARN", 0, 0, -3, 3, 3, 0],
+          23 => ["LEARN", 1, -3, 1, 1, 4, 0],
+          6 => ["LEARN", 2, 1, -2, 1, 5, 0],
+          78 => ["CAST", 2, 0, 0, 0, true, false],
+          79 => ["CAST", -1, 1, 0, 0, true, false],
+          80 => ["CAST", 0, -1, 1, 0, true, false],
+          81 => ["CAST", 0, 0, -1, 1, true, false],
+          86 => ["CAST", 3, 0, 0, 0, false, false],
+          88 => {:type=>"OPPONENT_CAST", :delta0=>4, :delta1=>1, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+        }
+      end
+
+      let(:me) { [6, 0, 0, 0, 0, 3, "CAST 86 stockpiling Aquas early in the game"] }
+      let(:opp) { [3, 0, 0, 0, 0, 3, "CAST 87"] }
+
+      it "just learns the transmuter, ez" do
+        is_expected.to start_with("LEARN 21")
+      end
+    end
+
     context "when I already have all the ingredients for a good potion" do
       let(:actions) do
         {

@@ -886,20 +886,6 @@ class GameTurn
         end
       end
 
-      # casting [2,0,0,0] in the first few rounds if no learning has come up (yet)
-      if me[5] <= 4 || gross_value(opp) < 5 # if opp is focused on learning also and has low value
-        best_aqua_giver = my_spells.select do |id, spell|
-          # pure aqua giver
-          spell[1].positive? && spell[2].zero? && spell[3].zero? && spell[4].zero? &&
-            # can be cast
-            spell[5]
-        end.max_by{|_id, spell| spell[1] }
-
-        if best_aqua_giver
-          return "CAST #{ best_aqua_giver[0] } stockpiling Aquas early in the game"
-        end
-      end
-
       # let's see if I don't need transmuters for imba aqua givers
       if me[5] <= 6
         i_have_enhanced_givers = my_spells.find do |id, spell|
@@ -924,6 +910,20 @@ class GameTurn
               return "LEARN #{ good_transmuter[0] } learning a good transmuter to get rid of aquas"
             end
           end
+        end
+      end
+
+      # casting [2,0,0,0] in the first few rounds if no learning has come up (yet)
+      if me[1] < 5 && (me[5] <= 4 || gross_value(opp) < 5) # if opp is focused on learning also and has low value
+        best_aqua_giver = my_spells.select do |id, spell|
+          # pure aqua giver
+          spell[1].positive? && spell[2].zero? && spell[3].zero? && spell[4].zero? &&
+            # can be cast
+            spell[5]
+        end.max_by{|_id, spell| spell[1] }
+
+        if best_aqua_giver
+          return "CAST #{ best_aqua_giver[0] } stockpiling Aquas early in the game"
         end
       end
 
