@@ -317,7 +317,7 @@ class GameSimulator
   # @start [Hash] # the starting position, actions and me expected
   #
   # @return [Array<String>]
-  def moves_towards(target:, start:, path: [], max_depth: MAXIMUM_DEPTH, depth: 0)
+  def moves_towards(target:, start:, path: [], max_depth: MAXIMUM_DEPTH, depth: 0, ms_spent: 0.0)
     prime_candidate = nil
     moves_to_return = nil
 
@@ -337,8 +337,6 @@ class GameSimulator
     max_allowed_learning_moves = max_depth / 2 # in case of odd max debt, learn less
 
     positions = {path => start}
-
-    ms_spent = 0.0
 
     (1..max_depth).to_a.each do |generation|
       break if moves_to_return

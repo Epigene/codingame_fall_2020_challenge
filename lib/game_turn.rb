@@ -11,8 +11,11 @@ class GameTurn
 
   def initialize(actions:, me:, opp:)
     actions.each do |k, v|
+      next if action_type(v) == "OPPONENT_CAST"
+
       debug("#{ k } => #{ v },", prefix: "")
     end
+
     @actions = actions
 
     @me = me
@@ -64,10 +67,20 @@ class GameTurn
     move = nil
     # realtime
     elapsed = Benchmark.realtime do
+      potion_to_work_towards = nil
+      heuristic_time = Benchmark.realtime do
+      # TODO, brewing needs a cost/benefit evaluation
       brewable_potion = potions.find { |_id, potion| i_can_brew?(potion) }
 
       if brewable_potion
         return "BREW #{ brewable_potion[0] } Brewin' #{ brewable_potion[0] }"
+      end
+
+      # before move 20 always just learn pure givers if I'm in the lead and they are for free
+      if me[5] < 20 && gross_value(me) > gross_value(opp)
+        if GameSimulator::PURE_GIVER_IDS.include?(tomes.first[0])
+          return "LEARN #{ tomes.first[0] } I'm in the lead, learning a good spell"
+        end
       end
 
       if me[5] < 10 # before 10th turn
@@ -225,9 +238,12 @@ class GameTurn
           # [simplest_potion_id, potions[simplest_potion_id]]
           most_lucrative_potion
         end
+      end * 1000
+      debug("Going through special-case IFs took #{ heuristic_time.round(1) }ms")
 
       the_moves = GameSimulator.the_instance.moves_towards(
-        start: position, target: deltas(potion_to_work_towards[1]).map(&:-@)
+        start: position, target: deltas(potion_to_work_towards[1]).map(&:-@),
+        ms_spent: heuristic_time
       )
 
       move =

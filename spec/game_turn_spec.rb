@@ -184,6 +184,7 @@ RSpec.describe GameTurn do
       end
 
       let(:me) { [3, 0, 0, 0, 0, 1, ""] }
+      let(:opp) { [3, 0, 0, 0, 0, 1, ""] }
 
       it "returns the first step towards easy brewin of leftmost potion" do
         is_expected.to start_with("LEARN 16")
@@ -235,6 +236,7 @@ RSpec.describe GameTurn do
       end
 
       let(:me) { [3, 0, 0, 0, 0, 1, ""] }
+      let(:opp) { [3, 0, 0, 0, 0, 1, ""] }
 
       it "returns the first step in the road to snagging spell 14" do
         is_expected.to start_with("CAST 78") # followed by rest and another "CAST 78"
@@ -299,6 +301,7 @@ RSpec.describe GameTurn do
       end
 
       let(:me) { [0, 0, 0, 0, 0, 2, "LEARN 14"] }
+      let(:opp) { [0, 0, 0, 0, 0, 2, "LEARN 14"] }
 
       it "returns a move to learn the first spell, which will give tax rebate and allow learning the very situationally awesome 31" do
         is_expected.to start_with("LEARN 1")
@@ -463,6 +466,72 @@ RSpec.describe GameTurn do
       end
     end
 
+    context "when I'm in the lead value wise and there is a giver in the 1st learn slot" do
+      let(:actions) do
+        {
+          67 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-1, :delta3=>-1, :price=>15, :tome_index=>3, :tax_count=>4, :castable=>false, :repeatable=>false},
+          43 => {:type=>"BREW", :delta0=>-3, :delta1=>-2, :delta2=>0, :delta3=>0, :price=>8, :tome_index=>1, :tax_count=>4, :castable=>false, :repeatable=>false},
+          61 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>0, :delta3=>-4, :price=>16, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          51 => {:type=>"BREW", :delta0=>-2, :delta1=>0, :delta2=>-3, :delta3=>0, :price=>11, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          65 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>0, :delta3=>-5, :price=>20, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          15 => ["LEARN", 0, 2, 0, 0, 0, 0], # good stuff
+          9 => ["LEARN", 2, -3, 2, 0, 1, 0],
+          20 => ["LEARN", 2, -2, 0, 1, 2, 0],
+          4 => ["LEARN", 3, 0, 0, 0, 3, 0],
+          7 => ["LEARN", 3, 0, 1, -1, 4, 0],
+          38 => ["LEARN", -2, 2, 0, 0, 5, 0],
+          82 => ["CAST", 2, 0, 0, 0, true, false],
+          83 => ["CAST", -1, 1, 0, 0, true, false],
+          84 => ["CAST", 0, -1, 1, 0, true, false],
+          85 => ["CAST", 0, 0, -1, 1, true, false],
+          87 => ["CAST", 0, 0, 1, 0, true, false],
+          90 => ["CAST", -3, 3, 0, 0, false, true],
+          97 => ["CAST", 4, 0, 0, 0, false, false],
+          99 => {:type=>"OPPONENT_CAST", :delta0=>2, :delta1=>1, :delta2=>-2, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+        }
+      end
+
+      let(:me) { [1, 3, 0, 0, 8, 12, "CAST 90 let's brew 67 via [CAST 90, CAST 87, CAST 85, CAST 84]"] }
+      let(:opp) { [6, 0, 0, 0, 0, 12, ""] }
+
+      it "returns a move to just learn the spell" do
+        is_expected.to start_with("LEARN 15")
+      end
+    end
+
+    context "when potions are in an interesting state, yellows required but i cant make them efficiently" do
+      let(:actions) do
+        {
+          61 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>0, :delta3=>-4, :price=>19, :tome_index=>3, :tax_count=>2, :castable=>false, :repeatable=>false},
+          51 => {:type=>"BREW", :delta0=>-2, :delta1=>0, :delta2=>-3, :delta3=>0, :price=>12, :tome_index=>1, :tax_count=>4, :castable=>false, :repeatable=>false},
+          65 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>0, :delta3=>-5, :price=>20, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          72 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-2, :delta3=>-2, :price=>19, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          54 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>-2, :price=>12, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          4 => ["LEARN", 3, 0, 0, 0, 0, 0],
+          7 => ["LEARN", 3, 0, 1, -1, 1, 0],
+          38 => ["LEARN", -2, 2, 0, 0, 2, 0],
+          40 => ["LEARN", 0, -2, 2, 0, 3, 0],
+          30 => ["LEARN", -4, 0, 1, 1, 4, 0],
+          31 => ["LEARN", 0, 3, 2, -2, 5, 0],
+          82 => ["CAST", 2, 0, 0, 0, true, false],
+          83 => ["CAST", -1, 1, 0, 0, true, false],
+          84 => ["CAST", 0, -1, 1, 0, true, false],
+          85 => ["CAST", 0, 0, -1, 1, true, false],
+          87 => ["CAST", 0, 0, 1, 0, false, false],
+          90 => ["CAST", -3, 3, 0, 0, true, true],
+          97 => ["CAST", 4, 0, 0, 0, true, false]
+        }
+      end
+
+      let(:me) { [1, 0, 1, 0, 23, 18, "CAST 87"] }
+      let(:opp) { [1, 0, 1, 0, 23, 18, "CAST 87"] }
+
+      it "returns a move to do anything but make yellow" do
+        # the algo should identify that I can only make yellow via vanilla spell, very inefficient
+        is_expected.to_not start_with("CAST 85")
+      end
+    end
+
     context "when it's a real situation that times out" do
       let(:actions) do
         {
@@ -502,6 +571,55 @@ RSpec.describe GameTurn do
 
         # "let's brew 74 via [REST, CAST 87, CAST 95, CAST 78, CAST 97, CAST 92]"
         #                 or [REST, CAST 87, CAST 78, CAST 95, CAST 97, CAST 92]"
+      end
+    end
+
+    context "when it's a real situation that timed out (opp has a boatload of spells)" do
+      let(:actions) do
+        {
+          65 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>0, :delta3=>-5, :price=>23, :tome_index=>3, :tax_count=>1, :castable=>false, :repeatable=>false},
+          72 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-2, :delta3=>-2, :price=>20, :tome_index=>1, :tax_count=>3, :castable=>false, :repeatable=>false},
+          54 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>-2, :price=>12, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          62 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>0, :delta3=>-3, :price=>16, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          75 => {:type=>"BREW", :delta0=>-1, :delta1=>-3, :delta2=>-1, :delta3=>-1, :price=>16, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          4 => ["LEARN", 3, 0, 0, 0, 0, 0],
+          7 => ["LEARN", 3, 0, 1, -1, 1, 0],
+          38 => ["LEARN", -2, 2, 0, 0, 2, 0],
+          40 => ["LEARN", 0, -2, 2, 0, 3, 0],
+          30 => ["LEARN", -4, 0, 1, 1, 4, 0],
+          31 => ["LEARN", 0, 3, 2, -2, 5, 0],
+          82 => ["CAST", 2, 0, 0, 0, true, false],
+          83 => ["CAST", -1, 1, 0, 0, true, false],
+          84 => ["CAST", 0, -1, 1, 0, true, false],
+          85 => ["CAST", 0, 0, -1, 1, false, false],
+          87 => ["CAST", 0, 0, 1, 0, false, false],
+          90 => ["CAST", -3, 3, 0, 0, true, true],
+          97 => ["CAST", 4, 0, 0, 0, true, false],
+          78 => {:type=>"OPPONENT_CAST", :delta0=>2, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          79 => {:type=>"OPPONENT_CAST", :delta0=>-1, :delta1=>1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
+          80 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>-1, :delta2=>1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
+          81 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
+          86 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-3, :delta3=>3, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          88 => {:type=>"OPPONENT_CAST", :delta0=>1, :delta1=>1, :delta2=>3, :delta3=>-2, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          89 => {:type=>"OPPONENT_CAST", :delta0=>-3, :delta1=>3, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>true},
+          91 => {:type=>"OPPONENT_CAST", :delta0=>2, :delta1=>2, :delta2=>0, :delta3=>-1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          92 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>-3, :delta2=>0, :delta3=>2, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          93 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>-3, :delta2=>3, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          94 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>2, :delta3=>-1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          95 => {:type=>"OPPONENT_CAST", :delta0=>3, :delta1=>-1, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          96 => {:type=>"OPPONENT_CAST", :delta0=>4, :delta1=>0, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          98 => {:type=>"OPPONENT_CAST", :delta0=>4, :delta1=>1, :delta2=>-1, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          99 => {:type=>"OPPONENT_CAST", :delta0=>2, :delta1=>1, :delta2=>-2, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+          100 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>2, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+          101 => {:type=>"OPPONENT_CAST", :delta0=>2, :delta1=>-3, :delta2=>2, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>true},
+        }
+      end
+
+      let(:me) { [1, 0, 0, 3, 44, 23, "CAST 85"] }
+      let(:opp) { [5, 4, 0, 1, 44, 23, "BREW 75"] }
+
+      it "uses improved timeout tracking to prevent timeout" do
+        is_expected.to match(%r'\A((REST)|(CAST))')
       end
     end
   end
