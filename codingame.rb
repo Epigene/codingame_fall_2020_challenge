@@ -568,6 +568,20 @@ class GameSimulator
     # {distance: distance, bonus: bonus}
   end
 
+  # returns a net gain of 0 if can't afford learning tax anyway
+  def net_aqua_gains_from_learning(aquas_on_hand:, tomes:)
+    tomes.map do |id, tome|
+      gain =
+        if aquas_on_hand >= tome[5]
+          tome[6] - tome[5]
+        else
+          0
+        end
+
+      [id, gain]
+    end
+  end
+
   # Does not care about legality much, since simulator will check when deciding outcome.
   # @return [Array<String>]
   def moves_from(position:, skip_resting: false, skip_learning: false)
@@ -588,21 +602,10 @@ class GameSimulator
 
     aquas_on_hand = position[:me][0]
 
-    # returns a net gain of 0 if can't afford learning tax anyway
-    net_aqua_gains_from_learning =
-      tomes.map do |id, tome|
-        gain =
-          if aquas_on_hand >= tome[5]
-            tome[6] - tome[5]
-          else
-            0
-          end
-
-        [id, gain]
-      end
-
     # can also give 0 and 1 aqua, beware
-    best_aqua_giver_from_learning = net_aqua_gains_from_learning.max_by{ |id, gain| gain }
+    best_aqua_giver_from_learning = net_aqua_gains_from_learning(
+      aquas_on_hand: aquas_on_hand, tomes: tomes
+    ).max_by{ |_id, gain| gain }
 
     position[:actions].each do |id, action|
       type = action_type(action)
@@ -724,7 +727,7 @@ class GameSimulator
       return i-1
     end
 
-    return 5
+    5
   end
 
   NO_INGREDIENTS = {can: false, detail: :insufficient_ingredients}.freeze
@@ -849,6 +852,31 @@ class GameTurn
             end
 
           return move
+        end
+      end
+
+      # if me[5] <= 4 # up to move 4, simply learning spells that give 2 or more net aqua
+      if me[5] <= 4 || gross_value(opp) < 5 # if opp is focused on learning also and has low value
+        lucrative_to_learn = GameSimulator.the_instance.
+          net_aqua_gains_from_learning(aquas_on_hand: me[0], tomes: tomes).
+          max_by{ |_id, gain| gain }
+
+        if lucrative_to_learn && lucrative_to_learn[1] >= 2
+          return "LEARN #{ lucrative_to_learn[0] } good Aqua gain from learning"
+        end
+      end
+
+      # casting [2,0,0,0] in the first few rounds if no learning has come up (yet)
+      if me[5] <= 4 || gross_value(opp) < 5 # if opp is focused on learning also and has low value
+        best_aqua_giver = my_spells.select do |id, spell|
+          # pure aqua giver
+          spell[1].positive? && spell[2].zero? && spell[3].zero? && spell[4].zero? &&
+            # can be cast
+            spell[5]
+        end.max_by{|_id, spell| spell[1] }
+
+        if best_aqua_giver
+          return "CAST #{ best_aqua_giver[0] } stockpiling Aquas early in the game"
         end
       end
 
@@ -982,6 +1010,12 @@ class GameTurn
     def opp_spells
     end
 
+    # @player [Array] :me or :opp array
+    # @return [Integer] 1 for any aqua 2 for green etc + worth from potions
+    def gross_value(player)
+      player[0] + player[1]*2 + player[2]*3 + player[3]*4 + player[4]
+    end
+
     # @potion [Hash] # {:delta0=>0, delta1:-2, delta2:0, delta3:0}
     # @return [Integer] # the relative cost to make a potion from empty inv
     def cost_in_moves(potion)
@@ -1000,8 +1034,6 @@ class GameTurn
         sort_by{|id, cost| cost }.
         first[0]
     end
-
-    TOMES_TO_CONSIDER = [0, 1].freeze
 
     # For now assuming that all 'degeneration' spells are bad, and skipping them
     #

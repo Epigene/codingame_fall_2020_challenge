@@ -526,6 +526,20 @@ class GameSimulator
     # {distance: distance, bonus: bonus}
   end
 
+  # returns a net gain of 0 if can't afford learning tax anyway
+  def net_aqua_gains_from_learning(aquas_on_hand:, tomes:)
+    tomes.map do |id, tome|
+      gain =
+        if aquas_on_hand >= tome[5]
+          tome[6] - tome[5]
+        else
+          0
+        end
+
+      [id, gain]
+    end
+  end
+
   # Does not care about legality much, since simulator will check when deciding outcome.
   # @return [Array<String>]
   def moves_from(position:, skip_resting: false, skip_learning: false)
@@ -546,21 +560,10 @@ class GameSimulator
 
     aquas_on_hand = position[:me][0]
 
-    # returns a net gain of 0 if can't afford learning tax anyway
-    net_aqua_gains_from_learning =
-      tomes.map do |id, tome|
-        gain =
-          if aquas_on_hand >= tome[5]
-            tome[6] - tome[5]
-          else
-            0
-          end
-
-        [id, gain]
-      end
-
     # can also give 0 and 1 aqua, beware
-    best_aqua_giver_from_learning = net_aqua_gains_from_learning.max_by{ |id, gain| gain }
+    best_aqua_giver_from_learning = net_aqua_gains_from_learning(
+      aquas_on_hand: aquas_on_hand, tomes: tomes
+    ).max_by{ |_id, gain| gain }
 
     position[:actions].each do |id, action|
       type = action_type(action)
@@ -682,7 +685,7 @@ class GameSimulator
       return i-1
     end
 
-    return 5
+    5
   end
 
   NO_INGREDIENTS = {can: false, detail: :insufficient_ingredients}.freeze

@@ -91,6 +91,31 @@ class GameTurn
         end
       end
 
+      # if me[5] <= 4 # up to move 4, simply learning spells that give 2 or more net aqua
+      if me[5] <= 4 || gross_value(opp) < 5 # if opp is focused on learning also and has low value
+        lucrative_to_learn = GameSimulator.the_instance.
+          net_aqua_gains_from_learning(aquas_on_hand: me[0], tomes: tomes).
+          max_by{ |_id, gain| gain }
+
+        if lucrative_to_learn && lucrative_to_learn[1] >= 2
+          return "LEARN #{ lucrative_to_learn[0] } good Aqua gain from learning"
+        end
+      end
+
+      # casting [2,0,0,0] in the first few rounds if no learning has come up (yet)
+      if me[5] <= 4 || gross_value(opp) < 5 # if opp is focused on learning also and has low value
+        best_aqua_giver = my_spells.select do |id, spell|
+          # pure aqua giver
+          spell[1].positive? && spell[2].zero? && spell[3].zero? && spell[4].zero? &&
+            # can be cast
+            spell[5]
+        end.max_by{|_id, spell| spell[1] }
+
+        if best_aqua_giver
+          return "CAST #{ best_aqua_giver[0] } stockpiling Aquas early in the game"
+        end
+      end
+
       # if me[5] < 4 # before 4th turn, hardcoded learning
       #   # identify 3rd spell as very good, by starting with Yello, down to Aqua, checking if I have giver
 
@@ -221,6 +246,12 @@ class GameTurn
     def opp_spells
     end
 
+    # @player [Array] :me or :opp array
+    # @return [Integer] 1 for any aqua 2 for green etc + worth from potions
+    def gross_value(player)
+      player[0] + player[1]*2 + player[2]*3 + player[3]*4 + player[4]
+    end
+
     # @potion [Hash] # {:delta0=>0, delta1:-2, delta2:0, delta3:0}
     # @return [Integer] # the relative cost to make a potion from empty inv
     def cost_in_moves(potion)
@@ -239,8 +270,6 @@ class GameTurn
         sort_by{|id, cost| cost }.
         first[0]
     end
-
-    TOMES_TO_CONSIDER = [0, 1].freeze
 
     # For now assuming that all 'degeneration' spells are bad, and skipping them
     #
