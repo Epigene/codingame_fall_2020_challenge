@@ -368,6 +368,36 @@ RSpec.describe GameTurn do
       end
     end
 
+    context "when I already have all the ingredients for a good potion" do
+      let(:actions) do
+        {
+          76 => {:type=>"BREW", :delta0=>-1, :delta1=>-1, :delta2=>-3, :delta3=>-1, :price=>19, :tome_index=>1, :tax_count=>3, :castable=>false, :repeatable=>false},
+          # this is the one we can brew
+          58 => {:type=>"BREW", :delta0=>0, :delta1=>-3, :delta2=>0, :delta3=>-2, :price=>14, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          72 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-2, :delta3=>-2, :price=>19, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          56 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-3, :delta3=>0, :price=>13, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          46 => {:type=>"BREW", :delta0=>-2, :delta1=>-3, :delta2=>0, :delta3=>0, :price=>8, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          6 => ["LEARN", 2, 1, -2, 1, 0, 0],
+          26 => ["LEARN", 1, 1, 1, -1, 1, 0],
+          20 => ["LEARN", 2, -2, 0, 1, 2, 0],
+          21 => ["LEARN", -3, 1, 1, 0, 3, 0],
+          25 => ["LEARN", 0, -3, 0, 2, 4, 0],
+          1 => ["LEARN", 3, -1, 0, 0, 5, 0],
+          82 => ["CAST", 2, 0, 0, 0, true, false],
+          83 => ["CAST", -1, 1, 0, 0, false, false],
+          84 => ["CAST", 0, -1, 1, 0, true, false],
+          85 => ["CAST", 0, 0, -1, 1, true, false],
+          81 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+        }
+      end
+
+      let(:me) { [1, 3, 0, 2, 56, 67, "CAST 83 let's brew 46 via [CAST 83, CAST 82]"] }
+
+      it "returns a move to brew it, not got for the cheapest potion" do
+        is_expected.to start_with("BREW 58")
+      end
+    end
+
     context "when it's a real situation that times out" do
       let(:actions) do
         {

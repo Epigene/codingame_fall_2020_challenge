@@ -64,6 +64,12 @@ class GameTurn
     move = nil
     # realtime
     elapsed = Benchmark.realtime do
+      brewable_potion = potions.find { |_id, potion| i_can_brew?(potion) }
+
+      if brewable_potion
+        return "BREW #{ brewable_potion[0] } Brewin' #{ brewable_potion[0] }"
+      end
+
       if me[5] < 10 # before 10th turn
         closest_pure_giver_spell =
           tomes.find do |id, _tome|
@@ -166,7 +172,6 @@ class GameTurn
 
       # if me[5] < 4 && givers_i_know[1] # i know green givers
       #   # identify tactical advantage in learning a green transmuter
-      #   # binding.pry
 
       #   closest_green_user =
       #     tomes.find do |id, tome|
@@ -190,7 +195,8 @@ class GameTurn
         if leftmost_potion_with_bonus
           leftmost_potion_with_bonus
         else
-          [simplest_potion_id, potions[simplest_potion_id]]
+          # [simplest_potion_id, potions[simplest_potion_id]]
+          most_lucrative_potion
         end
 
       the_moves = GameSimulator.the_instance.moves_towards(
@@ -280,6 +286,12 @@ class GameTurn
         map{ |id, potion| [id, cost_in_moves(potion)] }.
         sort_by{|id, cost| cost }.
         first[0]
+    end
+
+    def most_lucrative_potion
+      return @most_lucrative_potion if defined?(@most_lucrative_potion)
+
+      @most_lucrative_potion = potions.max_by{ |_id, potion| potion[:price] }
     end
 
     # For now assuming that all 'degeneration' spells are bad, and skipping them
