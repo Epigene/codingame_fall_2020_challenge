@@ -64,14 +64,21 @@ class GameTurn
     move = nil
     # realtime
     elapsed = Benchmark.realtime do
-      if me[5] < 10 # before 20th turn
+      brewable_potion = potions.find { |_id, potion| i_can_brew?(potion) }
+
+      if brewable_potion
+        return "BREW #{ brewable_potion[0] } Brewin' #{ brewable_potion[0] }"
+      end
+
+      if me[5] < 10 # before 10th turn
         closest_pure_giver_spell =
-          tomes.find do |id, tome|
+          tomes.find do |id, _tome|
             GameSimulator::PURE_GIVER_IDS.include?(id)
           end
         #=> [id, tome]
 
-        if closest_pure_giver_spell
+        #                              never learn pure givers in 6th tome spot, too expensive
+        if closest_pure_giver_spell && closest_pure_giver_spell[1][5] < 5
           tax_for_giver = [closest_pure_giver_spell[1][5], 0].max
 
           the_moves = GameSimulator.the_instance.moves_towards(
@@ -90,11 +97,95 @@ class GameTurn
         end
       end
 
-      if me[5] < 4 # before 4th turn, hardcoded learning
-        # binding.pry
-        # givers_i_know
-        # tomes
+      if me[5] < 4 # before 4th turn
+        closest_very_good_spell =
+          tomes.find do |id, _tome|
+            GameSimulator::INSTALEARN_NET_FOUR_SPELLS.include?(id)
+          end
+
+        if closest_very_good_spell && closest_very_good_spell[1][5] <= me[0]
+          return "LEARN #{ closest_very_good_spell[0] } this one's a keeper!"
+        end
       end
+
+      # if me[5] <= 4 # up to move 4, simply learning spells that give 2 or more net aqua
+      if me[5] <= 4 || gross_value(opp) < 5 # if opp is focused on learning also and has low value
+        lucrative_to_learn = GameSimulator.the_instance.
+          net_aqua_gains_from_learning(aquas_on_hand: me[0], tomes: tomes).
+          max_by{ |_id, gain| gain }
+
+        if lucrative_to_learn && lucrative_to_learn[1] >= 2
+          return "LEARN #{ lucrative_to_learn[0] } good Aqua gain from learning"
+        end
+      end
+
+      # casting [2,0,0,0] in the first few rounds if no learning has come up (yet)
+      if me[5] <= 4 || gross_value(opp) < 5 # if opp is focused on learning also and has low value
+        best_aqua_giver = my_spells.select do |id, spell|
+          # pure aqua giver
+          spell[1].positive? && spell[2].zero? && spell[3].zero? && spell[4].zero? &&
+            # can be cast
+            spell[5]
+        end.max_by{|_id, spell| spell[1] }
+
+        if best_aqua_giver
+          return "CAST #{ best_aqua_giver[0] } stockpiling Aquas early in the game"
+        end
+      end
+
+      # if me[5] < 4 # before 4th turn, hardcoded learning
+      #   # identify 3rd spell as very good, by starting with Yello, down to Aqua, checking if I have giver
+
+      #   # determine that [2, 0, 0, 0] is the state to learn it
+      #   # run bruteforcer for that, make sure it returns learning
+
+      #   closest_tactical_transmuter =
+      #     tomes.find do |id, tome|
+      #       next unless GameSimulator::TACTICAL_DEGENERATORS.include?(id)
+
+      #       _i_have_a_givers_for_what_this_spell_takes =
+      #         if tome[3].negative?
+      #           givers_i_know[2]
+      #         elsif tome[4].negative?
+      #           givers_i_know[3]
+      #         end
+      #     end
+
+      #   if closest_tactical_transmuter
+      #     tax_for_transmuter = [closest_tactical_transmuter[1][5], 0].max
+
+      #     the_moves = GameSimulator.the_instance.moves_towards(
+      #       start: position, target: [tax_for_transmuter, 0, 0, 0]
+      #     )
+
+      #     move =
+      #       if the_moves == []
+      #         # oh, already there, let's learn
+      #         "LEARN #{ closest_tactical_transmuter[0] }"
+      #       else
+      #         "#{ the_moves.first } let's try learning #{ closest_tactical_transmuter[0] } via [#{ the_moves.join(", ") }]"
+      #       end
+
+      #     return move
+      #   end
+      # end
+
+      # if me[5] < 4 && givers_i_know[1] # i know green givers
+      #   # identify tactical advantage in learning a green transmuter
+
+      #   closest_green_user =
+      #     tomes.find do |id, tome|
+      #       next if id == 1 # LEARN 1 is very bad
+
+      #       tome[2].negative? && tome[5] <= me[0]
+      #     end
+
+      #   if closest_green_user
+      #     return "LEARN #{ closest_green_user[0] } learning useful transmuter that uses green"
+      #   end
+
+      #   # if I have green givers and the spell takes greens (an is not LEARN 1)
+      # end
 
       leftmost_potion_with_bonus =
         potions.find { |id, potion| potion[:tome_index] == 3 }
@@ -104,7 +195,8 @@ class GameTurn
         if leftmost_potion_with_bonus
           leftmost_potion_with_bonus
         else
-          [simplest_potion_id, potions[simplest_potion_id]]
+          # [simplest_potion_id, potions[simplest_potion_id]]
+          most_lucrative_potion
         end
 
       the_moves = GameSimulator.the_instance.moves_towards(
@@ -120,7 +212,7 @@ class GameTurn
         end
     end
 
-    debug("move_v2 took #{ (elapsed * 1000.0).round }ms")
+    debug("finding move_v2 '#{ move }' took #{ (elapsed * 1000.0).round }ms")
 
     move
   end
@@ -171,6 +263,12 @@ class GameTurn
     def opp_spells
     end
 
+    # @player [Array] :me or :opp array
+    # @return [Integer] 1 for any aqua 2 for green etc + worth from potions
+    def gross_value(player)
+      player[0] + player[1]*2 + player[2]*3 + player[3]*4 + player[4]
+    end
+
     # @potion [Hash] # {:delta0=>0, delta1:-2, delta2:0, delta3:0}
     # @return [Integer] # the relative cost to make a potion from empty inv
     def cost_in_moves(potion)
@@ -190,7 +288,11 @@ class GameTurn
         first[0]
     end
 
-    TOMES_TO_CONSIDER = [0, 1].freeze
+    def most_lucrative_potion
+      return @most_lucrative_potion if defined?(@most_lucrative_potion)
+
+      @most_lucrative_potion = potions.max_by{ |_id, potion| potion[:price] }
+    end
 
     # For now assuming that all 'degeneration' spells are bad, and skipping them
     #

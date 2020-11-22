@@ -6,6 +6,8 @@ class GameSimulator
   #                 78, 82 are default 1st spell ids, the [2, 0, 0, 0] spells
   PURE_GIVER_IDS = [78, 82, 2, 3, 4, 12, 13, 14, 15, 16].to_set.freeze
   GOOD_SPELL_IDS = [18, 17, 38, 39, 40, 30, 34].to_set.freeze
+  TACTICAL_DEGENERATORS = [31, 32, 41, 7, 5, 19, 26, 27].to_set.freeze
+  INSTALEARN_NET_FOUR_SPELLS = [12, 13, 14, 15, 16, 33].to_set.freeze
 
   LEARNABLE_SPELLS = {
     # id => [deltas,  can be multicast, hard_skip, value_per_turn]
@@ -18,6 +20,7 @@ class GameSimulator
     15 => [0, 2, 0, 0, false, false, 4], # pure giver
     16 => [1, 0, 1, 0, false, false, 4], # pure giver
 
+    # excellent transmuters
     18 => [-1, -1, 0, 1, true, false, 1], # IMBA, huge multicast potential, special in that it takes two givers
     17 => [-2, 0, 1, 0, true, false, 1], # GREAT!, better version of 11
     38 => [-2, 2, 0, 0, true, false, 2], # OK
@@ -25,36 +28,37 @@ class GameSimulator
     40 => [0, -2, 2, 0, true, false, 2], # OK
     30 => [-4, 0, 1, 1, true, false, 3], # OK
     34 => [-2, 0, -1, 2, true, false, 3], # OK, takes two givers
+    33 => [-5, 0, 3, 0, true, false, 4], # OK, one of the rare spells with net+ of 4
 
+    # Tactical degens, ony from orange and yello for now
     31 => [0, 3, 2, -2, true, false, 4], # degen. excellent if you have [0, 0, 0, 1]
-
+    32 => [1, 1, 3, -2, true, false, 4], # degen
+    41 => [0, 0, 2, -1, true, false, 2], # degen, good chance to multicast
+    7 => [3, 0, 1, -1, true, false, 2], # degen
+    26 => [1, 1, 1, -1, true, false, 2], # degen, excellent multicast
+    5 => [2, 3, -2, 0, true, false, 2], # degen
+    19 => [0, 2, -1, 0, true, false, 1], # degen
+    27 => [1, 2, -1, 0, true, false, 2], # degen, good multicast
 
     0 => [-3, 0, 0, 1, true, false, 1], # so-so-to-OK
     21 => [-3, 1, 1, 0, true, false, 2], # so-so, lossy
     37 => [-3, 3, 0, 0, true, false, 3], # so-so-to-OK
-    1 => [3, -1, 0, 0, true, false, 1], # degen
-    5 => [2, 3, -2, 0, true, false, 2], # degen
     6 => [2, 1, -2, 1, true, false, 2], # so-so, lossy
-    7 => [3, 0, 1, -1, true, false, 2], # degen
+
+    10 => [2, 2, 0, -1, true, false, 2], # degen
+    24 => [0, 3, 0, -1, true, false, 2], # degen
+    22 => [0, 2, -2, 1, true, false, 2], # so-so, twist
+    28 => [4, 1, -1, 0, true, false, 3], # degen, low chance to multicast :(
+    35 => [0, 0, -3, 3, true, false, 3], # so-so, situational, when are you gonna have 3 oranges?
     8 => [3, -2, 1, 0, true, false, 2], # so-so, lossy
     9 => [2, -3, 2, 0, true, false, 2], # so-so, lossy
-    10 => [2, 2, 0, -1, true, false, 2], # degen
-    19 => [0, 2, -1, 0, true, false, 1], # degen
     20 => [2, -2, 0, 1, true, false, 2], # so-so, lossy
-    22 => [0, 2, -2, 1, true, false, 2], # so-so, twist
     23 => [1, -3, 1, 1, true, false, 2], # so-so, twist
-    24 => [0, 3, 0, -1, true, false, 2], # degen
     25 => [0, -3, 0, 2, true, false, 2], # so-so
-    26 => [1, 1, 1, -1, true, false, 2], # degen, excellent multicast
-    27 => [1, 2, -1, 0, true, false, 2], # degen, good multicast
-    28 => [4, 1, -1, 0, true, false, 3], # degen, low chance to multicast :(
-    32 => [1, 1, 3, -2, true, false, 4], # degen
     36 => [0, -3, 3, 0, true, false, 3], # so-so
-    35 => [0, 0, -3, 3, true, false, 3], # so-so
     11 => [-4, 0, 2, 0, true, false, 2], # so-so, bad version of 17
-    33 => [-5, 0, 3, 0, true, true, 4], # so-so
-    29 => [-5, 0, 0, 2, true, true, 3], # mehh
-    41 => [0, 0, 2, -1, true, false, 2] # degen, good chance to multicast
+    29 => [-5, 0, 0, 2, true, false, 3], # mehh, situational
+    1 => [3, -1, 0, 0, true, true, 1], # degen, extremely situational
   }.freeze
 
   LEARNED_SPELL_DATA = {
@@ -337,7 +341,7 @@ class GameSimulator
     (1..max_depth).to_a.each do |generation|
       break if moves_to_return
 
-      if ms_spent > 45
+      if ms_spent > 44
         debug("Quick-returning #{ prime_candidate[0] } due to imminent timeout!")
         return prime_candidate[0]
       end
@@ -401,7 +405,7 @@ class GameSimulator
 
           ms_spent_in_this_gen += position_processing_time
 
-          if ms_spent_in_this_gen > 45
+          if ms_spent_in_this_gen > 44
             debug("Doing an emergency break out of position processing due to time running out!")
             break
           end
@@ -451,8 +455,6 @@ class GameSimulator
             end
 
           cutoff_index = nil
-
-          # binding.pry if generation == 4
 
           data.each.with_index do |(new_path, specifics), i|
             if specifics[:distance_from_target][:distance] < no_longer_tolerable_distance
@@ -525,6 +527,20 @@ class GameSimulator
     # {distance: distance, bonus: bonus}
   end
 
+  # returns a net gain of 0 if can't afford learning tax anyway
+  def net_aqua_gains_from_learning(aquas_on_hand:, tomes:)
+    tomes.map do |id, tome|
+      gain =
+        if aquas_on_hand >= tome[5]
+          tome[6] - tome[5]
+        else
+          0
+        end
+
+      [id, gain]
+    end
+  end
+
   # Does not care about legality much, since simulator will check when deciding outcome.
   # @return [Array<String>]
   def moves_from(position:, skip_resting: false, skip_learning: false)
@@ -545,21 +561,10 @@ class GameSimulator
 
     aquas_on_hand = position[:me][0]
 
-    # returns a net gain of 0 if can't afford learning tax anyway
-    net_aqua_gains_from_learning =
-      tomes.map do |id, tome|
-        gain =
-          if aquas_on_hand >= tome[5]
-            tome[6] - tome[5]
-          else
-            0
-          end
-
-        [id, gain]
-      end
-
     # can also give 0 and 1 aqua, beware
-    best_aqua_giver_from_learning = net_aqua_gains_from_learning.max_by{ |id, gain| gain }
+    best_aqua_giver_from_learning = net_aqua_gains_from_learning(
+      aquas_on_hand: aquas_on_hand, tomes: tomes
+    ).max_by{ |_id, gain| gain }
 
     position[:actions].each do |id, action|
       type = action_type(action)
@@ -681,7 +686,7 @@ class GameSimulator
       return i-1
     end
 
-    return 5
+    5
   end
 
   NO_INGREDIENTS = {can: false, detail: :insufficient_ingredients}.freeze
