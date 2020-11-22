@@ -341,7 +341,7 @@ class GameSimulator
     (1..max_depth).to_a.each do |generation|
       break if moves_to_return
 
-      if ms_spent > 45
+      if ms_spent > 44
         debug("Quick-returning #{ prime_candidate[0] } due to imminent timeout!")
         return prime_candidate[0]
       end
@@ -405,7 +405,7 @@ class GameSimulator
 
           ms_spent_in_this_gen += position_processing_time
 
-          if ms_spent_in_this_gen > 45
+          if ms_spent_in_this_gen > 44
             debug("Doing an emergency break out of position processing due to time running out!")
             break
           end
