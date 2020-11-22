@@ -133,6 +133,33 @@ class GameTurn
         end
       end
 
+      # let's see if I don't need transmuters for imba aqua givers
+      if me[5] <= 6
+        i_have_enhanced_givers = my_spells.find do |id, spell|
+          deltas = spell[1..4]
+
+          GameSimulator::ENHANCED_AQUA_GIVERS.find {|id| GameSimulator::LEARNABLE_SPELLS[id][0..3] == deltas }
+        end
+
+        if i_have_enhanced_givers
+          i_have_enhanced_transmuters = my_spells.find do |id, spell|
+            deltas = spell[1..4]
+
+            GameSimulator::ENHANCED_AQUA_TRANSMUTERS.find { |id| GameSimulator::LEARNABLE_SPELLS[id][0..3] == deltas }
+          end
+
+          unless i_have_enhanced_transmuters
+            good_transmuter = tomes.find.with_index do |(id, tome), i|
+              i <= 1 && GameSimulator::ENHANCED_AQUA_TRANSMUTERS.include?(id) && tome[5] <= me[0]
+            end
+
+            if good_transmuter
+              return "LEARN #{ good_transmuter[0] } learning a good transmuter to get rid of aquas"
+            end
+          end
+        end
+      end
+
       # if me[5] < 4 # before 4th turn, hardcoded learning
       #   # identify 3rd spell as very good, by starting with Yello, down to Aqua, checking if I have giver
 

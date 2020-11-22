@@ -8,6 +8,8 @@ class GameSimulator
   GOOD_SPELL_IDS = [18, 17, 38, 39, 40, 30, 34].to_set.freeze
   TACTICAL_DEGENERATORS = [31, 32, 41, 7, 5, 19, 26, 27].to_set.freeze
   INSTALEARN_NET_FOUR_SPELLS = [12, 13, 14, 15, 16, 33].to_set.freeze
+  ENHANCED_AQUA_GIVERS = [2, 4, 12, 13].to_set.freeze
+  ENHANCED_AQUA_TRANSMUTERS = [17, 38, 30, 33, 0, 21, 37, 11, 29].to_set.freeze
 
   LEARNABLE_SPELLS = {
     # id => [deltas,  can be multicast, hard_skip, value_per_turn]

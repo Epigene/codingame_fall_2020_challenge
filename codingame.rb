@@ -50,6 +50,8 @@ class GameSimulator
   GOOD_SPELL_IDS = [18, 17, 38, 39, 40, 30, 34].to_set.freeze
   TACTICAL_DEGENERATORS = [31, 32, 41, 7, 5, 19, 26, 27].to_set.freeze
   INSTALEARN_NET_FOUR_SPELLS = [12, 13, 14, 15, 16, 33].to_set.freeze
+  ENHANCED_AQUA_GIVERS = [2, 4, 12, 13].to_set.freeze
+  ENHANCED_AQUA_TRANSMUTERS = [17, 38, 30, 33, 0, 21, 37, 11, 29].to_set.freeze
 
   LEARNABLE_SPELLS = {
     # id => [deltas,  can be multicast, hard_skip, value_per_turn]
@@ -383,7 +385,7 @@ class GameSimulator
     (1..max_depth).to_a.each do |generation|
       break if moves_to_return
 
-      if ms_spent > 45
+      if ms_spent > 44
         debug("Quick-returning #{ prime_candidate[0] } due to imminent timeout!")
         return prime_candidate[0]
       end
@@ -447,7 +449,7 @@ class GameSimulator
 
           ms_spent_in_this_gen += position_processing_time
 
-          if ms_spent_in_this_gen > 45
+          if ms_spent_in_this_gen > 44
             debug("Doing an emergency break out of position processing due to time running out!")
             break
           end
@@ -895,6 +897,33 @@ class GameTurn
 
         if best_aqua_giver
           return "CAST #{ best_aqua_giver[0] } stockpiling Aquas early in the game"
+        end
+      end
+
+      # let's see if I don't need transmuters for imba aqua givers
+      if me[5] <= 6
+        i_have_enhanced_givers = my_spells.find do |id, spell|
+          deltas = spell[1..4]
+
+          GameSimulator::ENHANCED_AQUA_GIVERS.find {|id| GameSimulator::LEARNABLE_SPELLS[id][0..3] == deltas }
+        end
+
+        if i_have_enhanced_givers
+          i_have_enhanced_transmuters = my_spells.find do |id, spell|
+            deltas = spell[1..4]
+
+            GameSimulator::ENHANCED_AQUA_TRANSMUTERS.find { |id| GameSimulator::LEARNABLE_SPELLS[id][0..3] == deltas }
+          end
+
+          unless i_have_enhanced_transmuters
+            good_transmuter = tomes.find.with_index do |(id, tome), i|
+              i <= 1 && GameSimulator::ENHANCED_AQUA_TRANSMUTERS.include?(id) && tome[5] <= me[0]
+            end
+
+            if good_transmuter
+              return "LEARN #{ good_transmuter[0] } learning a good transmuter to get rid of aquas"
+            end
+          end
         end
       end
 

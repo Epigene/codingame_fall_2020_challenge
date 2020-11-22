@@ -368,6 +368,40 @@ RSpec.describe GameTurn do
       end
     end
 
+    context "when I'm drowning in Aqua givers" do
+      let(:actions) do
+        {
+          67 => {:type=>"BREW", :delta0=>0, :delta1=>-2, :delta2=>-1, :delta3=>-1, :price=>15, :tome_index=>3, :tax_count=>4, :castable=>false, :repeatable=>false},
+          65 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>0, :delta3=>-5, :price=>21, :tome_index=>1, :tax_count=>4, :castable=>false, :repeatable=>false},
+          68 => {:type=>"BREW", :delta0=>-1, :delta1=>0, :delta2=>-2, :delta3=>-1, :price=>12, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          52 => {:type=>"BREW", :delta0=>-3, :delta1=>0, :delta2=>0, :delta3=>-2, :price=>11, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          63 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-3, :delta3=>-2, :price=>17, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          33 => ["LEARN", -5, 0, 3, 0, 0, 1],
+          1 => ["LEARN", 3, -1, 0, 0, 1, 1],
+          5 => ["LEARN", 2, 3, -2, 0, 2, 0],
+          29 => ["LEARN", -5, 0, 0, 2, 3, 0],
+          40 => ["LEARN", 0, -2, 2, 0, 4, 0],
+          18 => ["LEARN", -1, -1, 0, 1, 5, 0],
+          78 => ["CAST", 2, 0, 0, 0, true, false], # default
+          79 => ["CAST", -1, 1, 0, 0, true, false],
+          80 => ["CAST", 0, -1, 1, 0, true, false],
+          81 => ["CAST", 0, 0, -1, 1, true, false],
+          86 => ["CAST", 3, 0, 0, 0, true, false], # +3
+          88 => ["CAST", 4, 0, 0, 0, true, false], # +4 !
+          89 => ["CAST", 0, 0, 1, 0, true, false],
+          90 => ["CAST", 2, 2, 0, -1, true, true],
+          87 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>2, :delta2=>0, :delta3=>0, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>false, :repeatable=>false},
+        }
+      end
+
+      let(:me) { [3, 0, 0, 0, 0, 5, "LEARN 10 good Aqua gain from learning"] }
+      let(:opp) { [1, 1, 0, 1, 0, 5, "LEARN 10"] }
+
+      it "returns the obvious move to learn the excellent aqua transmuter" do
+        is_expected.to start_with("LEARN 33")
+      end
+    end
+
     context "when I already have all the ingredients for a good potion" do
       let(:actions) do
         {
