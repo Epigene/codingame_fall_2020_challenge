@@ -379,7 +379,7 @@ RSpec.describe GameTurn do
           68 => {:type=>"BREW", :delta0=>-1, :delta1=>0, :delta2=>-2, :delta3=>-1, :price=>12, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
           52 => {:type=>"BREW", :delta0=>-3, :delta1=>0, :delta2=>0, :delta3=>-2, :price=>11, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
           63 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-3, :delta3=>-2, :price=>17, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
-          33 => ["LEARN", -5, 0, 3, 0, 0, 1],
+          33 => ["LEARN", -5, 0, 3, 0, 0, 1], # we want this
           1 => ["LEARN", 3, -1, 0, 0, 1, 1],
           5 => ["LEARN", 2, 3, -2, 0, 2, 0],
           29 => ["LEARN", -5, 0, 0, 2, 3, 0],

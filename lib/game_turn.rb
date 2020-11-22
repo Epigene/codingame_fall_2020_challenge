@@ -134,13 +134,13 @@ class GameTurn
 
       # let's see if I don't need transmuters for imba aqua givers
       if me[5] <= 6
-        i_have_enhanced_givers = my_spells.find do |id, spell|
+        i_have_enhanced_aq_givers = my_spells.find do |id, spell|
           deltas = spell[1..4]
 
-          GameSimulator::ENHANCED_AQUA_GIVERS.find {|id| GameSimulator::LEARNABLE_SPELLS[id][0..3] == deltas }
+          GameSimulator::ENHANCED_AQUA_GIVERS.find { |id| GameSimulator::LEARNABLE_SPELLS[id][0..3] == deltas }
         end
 
-        if i_have_enhanced_givers
+        if i_have_enhanced_aq_givers
           i_have_enhanced_transmuters = my_spells.find do |id, spell|
             deltas = spell[1..4]
 
@@ -149,7 +149,9 @@ class GameTurn
 
           unless i_have_enhanced_transmuters
             good_transmuter = tomes.find.with_index do |(id, tome), i|
-              i <= 1 && GameSimulator::ENHANCED_AQUA_TRANSMUTERS.include?(id) && tome[5] <= me[0]
+              break if i > 0
+
+              GameSimulator::ENHANCED_AQUA_TRANSMUTERS.include?(id) && tome[5] <= me[0]
             end
 
             if good_transmuter
@@ -160,7 +162,7 @@ class GameTurn
       end
 
       # casting [2,0,0,0] in the first few rounds if no learning has come up (yet)
-      if me[1] < 5 && (me[5] <= 4 || gross_value(opp) < 5) # if opp is focused on learning also and has low value
+      if me[0] < 5 && me[0..3].sum <= 6 && (me[5] <= 4 || gross_value(opp) < 5) # if opp is focused on learning also and has low value
         best_aqua_giver = my_spells.select do |id, spell|
           # pure aqua giver
           spell[1].positive? && spell[2].zero? && spell[3].zero? && spell[4].zero? &&

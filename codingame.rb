@@ -359,7 +359,7 @@ class GameSimulator
   # @start [Hash] # the starting position, actions and me expected
   #
   # @return [Array<String>]
-  def moves_towards(target:, start:, path: [], max_depth: MAXIMUM_DEPTH, depth: 0)
+  def moves_towards(target:, start:, path: [], max_depth: MAXIMUM_DEPTH, depth: 0, ms_spent: 0.0)
     prime_candidate = nil
     moves_to_return = nil
 
@@ -379,8 +379,6 @@ class GameSimulator
     max_allowed_learning_moves = max_depth / 2 # in case of odd max debt, learn less
 
     positions = {path => start}
-
-    ms_spent = 0.0
 
     (1..max_depth).to_a.each do |generation|
       break if moves_to_return
@@ -778,8 +776,11 @@ class GameTurn
 
   def initialize(actions:, me:, opp:)
     actions.each do |k, v|
+      next if action_type(v) == "OPPONENT_CAST"
+
       debug("#{ k } => #{ v },", prefix: "")
     end
+
     @actions = actions
 
     @me = me
@@ -831,10 +832,20 @@ class GameTurn
     move = nil
     # realtime
     elapsed = Benchmark.realtime do
+      potion_to_work_towards = nil
+      heuristic_time = Benchmark.realtime do
+      # TODO, brewing needs a cost/benefit evaluation
       brewable_potion = potions.find { |_id, potion| i_can_brew?(potion) }
 
       if brewable_potion
         return "BREW #{ brewable_potion[0] } Brewin' #{ brewable_potion[0] }"
+      end
+
+      # before move 20 always just learn pure givers if I'm in the lead and they are for free
+      if me[5] < 20 && gross_value(me) > gross_value(opp)
+        if GameSimulator::PURE_GIVER_IDS.include?(tomes.first[0])
+          return "LEARN #{ tomes.first[0] } I'm in the lead, learning a good spell"
+        end
       end
 
       if me[5] < 10 # before 10th turn
@@ -888,13 +899,13 @@ class GameTurn
 
       # let's see if I don't need transmuters for imba aqua givers
       if me[5] <= 6
-        i_have_enhanced_givers = my_spells.find do |id, spell|
+        i_have_enhanced_aq_givers = my_spells.find do |id, spell|
           deltas = spell[1..4]
 
-          GameSimulator::ENHANCED_AQUA_GIVERS.find {|id| GameSimulator::LEARNABLE_SPELLS[id][0..3] == deltas }
+          GameSimulator::ENHANCED_AQUA_GIVERS.find { |id| GameSimulator::LEARNABLE_SPELLS[id][0..3] == deltas }
         end
 
-        if i_have_enhanced_givers
+        if i_have_enhanced_aq_givers
           i_have_enhanced_transmuters = my_spells.find do |id, spell|
             deltas = spell[1..4]
 
@@ -903,7 +914,9 @@ class GameTurn
 
           unless i_have_enhanced_transmuters
             good_transmuter = tomes.find.with_index do |(id, tome), i|
-              i <= 1 && GameSimulator::ENHANCED_AQUA_TRANSMUTERS.include?(id) && tome[5] <= me[0]
+              break if i > 0
+
+              GameSimulator::ENHANCED_AQUA_TRANSMUTERS.include?(id) && tome[5] <= me[0]
             end
 
             if good_transmuter
@@ -914,7 +927,7 @@ class GameTurn
       end
 
       # casting [2,0,0,0] in the first few rounds if no learning has come up (yet)
-      if me[1] < 5 && (me[5] <= 4 || gross_value(opp) < 5) # if opp is focused on learning also and has low value
+      if me[0] < 5 && me[0..3].sum <= 6 && (me[5] <= 4 || gross_value(opp) < 5) # if opp is focused on learning also and has low value
         best_aqua_giver = my_spells.select do |id, spell|
           # pure aqua giver
           spell[1].positive? && spell[2].zero? && spell[3].zero? && spell[4].zero? &&
@@ -992,9 +1005,12 @@ class GameTurn
           # [simplest_potion_id, potions[simplest_potion_id]]
           most_lucrative_potion
         end
+      end * 1000
+      debug("Going through special-case IFs took #{ heuristic_time.round(1) }ms")
 
       the_moves = GameSimulator.the_instance.moves_towards(
-        start: position, target: deltas(potion_to_work_towards[1]).map(&:-@)
+        start: position, target: deltas(potion_to_work_towards[1]).map(&:-@),
+        ms_spent: heuristic_time
       )
 
       move =
