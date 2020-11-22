@@ -66,7 +66,7 @@ class GameTurn
     elapsed = Benchmark.realtime do
       if me[5] < 10 # before 10th turn
         closest_pure_giver_spell =
-          tomes.find do |id, tome|
+          tomes.find do |id, _tome|
             GameSimulator::PURE_GIVER_IDS.include?(id)
           end
         #=> [id, tome]
@@ -88,6 +88,17 @@ class GameTurn
             end
 
           return move
+        end
+      end
+
+      if me[5] < 4 # before 4th turn
+        closest_very_good_spell =
+          tomes.find do |id, _tome|
+            GameSimulator::INSTALEARN_NET_FOUR_SPELLS.include?(id)
+          end
+
+        if closest_very_good_spell && closest_very_good_spell[1][5] <= me[0]
+          return "LEARN #{ closest_very_good_spell[0] } this one's a keeper!"
         end
       end
 

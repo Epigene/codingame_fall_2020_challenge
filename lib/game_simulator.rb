@@ -7,6 +7,7 @@ class GameSimulator
   PURE_GIVER_IDS = [78, 82, 2, 3, 4, 12, 13, 14, 15, 16].to_set.freeze
   GOOD_SPELL_IDS = [18, 17, 38, 39, 40, 30, 34].to_set.freeze
   TACTICAL_DEGENERATORS = [31, 32, 41, 7, 5, 19, 26, 27].to_set.freeze
+  INSTALEARN_NET_FOUR_SPELLS = [12, 13, 14, 15, 16, 33].to_set.freeze
 
   LEARNABLE_SPELLS = {
     # id => [deltas,  can be multicast, hard_skip, value_per_turn]

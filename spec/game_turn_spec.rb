@@ -338,6 +338,36 @@ RSpec.describe GameTurn do
       end
     end
 
+    context "when a real good spell is available, a real example" do
+      let(:actions) do
+        {
+          57 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-2, :delta3=>-2, :price=>17, :tome_index=>3, :tax_count=>4, :castable=>false, :repeatable=>false},
+          64 => {:type=>"BREW", :delta0=>0, :delta1=>0, :delta2=>-2, :delta3=>-3, :price=>19, :tome_index=>1, :tax_count=>4, :castable=>false, :repeatable=>false},
+          49 => {:type=>"BREW", :delta0=>0, :delta1=>-5, :delta2=>0, :delta3=>0, :price=>10, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          73 => {:type=>"BREW", :delta0=>-1, :delta1=>-1, :delta2=>-1, :delta3=>-1, :price=>12, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          59 => {:type=>"BREW", :delta0=>-2, :delta1=>0, :delta2=>0, :delta3=>-3, :price=>14, :tome_index=>0, :tax_count=>0, :castable=>false, :repeatable=>false},
+          33 => ["LEARN", -5, 0, 3, 0, 0, 0], # the very rare net +4 spell
+          0 => ["LEARN", -3, 0, 0, 1, 1, 0],
+          38 => ["LEARN", -2, 2, 0, 0, 2, 0],
+          25 => ["LEARN", 0, -3, 0, 2, 3, 0],
+          27 => ["LEARN", 1, 2, -1, 0, 4, 0],
+          35 => ["LEARN", 0, 0, -3, 3, 5, 0],
+          78 => ["CAST", 2, 0, 0, 0, true, false],
+          79 => ["CAST", -1, 1, 0, 0, true, false],
+          80 => ["CAST", 0, -1, 1, 0, true, false],
+          81 => ["CAST", 0, 0, -1, 1, true, false],
+          85 => {:type=>"OPPONENT_CAST", :delta0=>0, :delta1=>0, :delta2=>-1, :delta3=>1, :price=>0, :tome_index=>-1, :tax_count=>-1, :castable=>true, :repeatable=>false},
+        }
+      end
+
+      let(:me) { [3, 0, 0, 0, 0, 1, ""] }
+      let(:opp) { [3, 0, 0, 0, 0, 1, ""] }
+
+      it "goes for learning the transmuter with huge net advantage" do
+        is_expected.to start_with("LEARN 33")
+      end
+    end
+
     context "when it's a real situation that times out" do
       let(:actions) do
         {

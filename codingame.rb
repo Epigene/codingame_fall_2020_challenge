@@ -49,6 +49,7 @@ class GameSimulator
   PURE_GIVER_IDS = [78, 82, 2, 3, 4, 12, 13, 14, 15, 16].to_set.freeze
   GOOD_SPELL_IDS = [18, 17, 38, 39, 40, 30, 34].to_set.freeze
   TACTICAL_DEGENERATORS = [31, 32, 41, 7, 5, 19, 26, 27].to_set.freeze
+  INSTALEARN_NET_FOUR_SPELLS = [12, 13, 14, 15, 16, 33].to_set.freeze
 
   LEARNABLE_SPELLS = {
     # id => [deltas,  can be multicast, hard_skip, value_per_turn]
@@ -830,7 +831,7 @@ class GameTurn
     elapsed = Benchmark.realtime do
       if me[5] < 10 # before 10th turn
         closest_pure_giver_spell =
-          tomes.find do |id, tome|
+          tomes.find do |id, _tome|
             GameSimulator::PURE_GIVER_IDS.include?(id)
           end
         #=> [id, tome]
@@ -852,6 +853,17 @@ class GameTurn
             end
 
           return move
+        end
+      end
+
+      if me[5] < 4 # before 4th turn
+        closest_very_good_spell =
+          tomes.find do |id, _tome|
+            GameSimulator::INSTALEARN_NET_FOUR_SPELLS.include?(id)
+          end
+
+        if closest_very_good_spell && closest_very_good_spell[1][5] <= me[0]
+          return "LEARN #{ closest_very_good_spell[0] } this one's a keeper!"
         end
       end
 
